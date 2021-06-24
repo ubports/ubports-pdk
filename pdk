@@ -1,0 +1,81 @@
+#!/bin/bash
+
+SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+
+PULL_IMG=no
+SETUP=no
+CREATE=no
+CLEARCACHE=no
+
+# Argument parsing
+while [[ $# -gt 0 ]]; do
+    arg="$1"
+    case $arg in
+        pull)
+            PULL_IMG=yes
+            CREATE=no
+            shift
+        ;;
+        setup)
+            SETUP=yes
+            shift
+        ;;
+        create)
+            CREATE=yes
+            PULL_IMG=no
+            shift
+        ;;
+        clearcache)
+            CLEARCACHE=yes
+            shift
+        ;;
+        easy)
+            SETUP=yes
+            PULL_IMG=yes
+            shift
+        ;;
+        *)
+            echo "usage: $0 [pull] [setup] [create] [clearcache]"
+            exit 1
+        ;;
+    esac
+done
+
+echo "Executing tasks:"
+printf "\tSetup? $SETUP\n"
+printf "\tPull image? $PULL_IMG\n"
+printf "\tCreate custom image? $CREATE\n"
+
+source $SCRIPTPATH/scripts/paths.sh
+
+function createCaches {
+    mkdir -p $IMG_CACHE
+}
+
+function clearCaches {
+    rm -rf $IMG_CACHE
+}
+
+function setup {
+    bash $SCRIPTPATH/scripts/prerequisites.sh
+    clearCaches
+    createCaches
+}
+
+function createImage {
+    createCaches
+    
+}
+
+function pullLatestImage {
+    createCaches
+    echo "Not implemented yet, create an image instead."
+}
+
+if [ "$CLEARCACHES" == "yes" ]; then
+    clearCaches
+fi
+
+if [ "$PULL_IMG" == "yes" ]; then
+    pullLatestImage
+fi
