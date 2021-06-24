@@ -1,0 +1,3 @@
+[submodule "deps/rootfs-builder-debos"]
+	path = deps/rootfs-builder-debos
+	url = https://gitlab.com/ubports/core/rootfs-builder-debos.git
