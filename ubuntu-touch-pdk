@@ -73,11 +73,11 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Commands:"
             printf "\tsetup: Host OS preparations (recommended for first-time use)\n"
+            printf "\tclear: Clean up all images\n"
             printf "\tcreate: Generate a bootable image locally\n"
             printf "\tpull: Download pre-generated image\n"
             printf "\trun: Run desired image\n"
             printf "\tlist: Show list of cached images\n"
-            printf "\tcleab: Clean up all images\n"
             exit 1
         ;;
     esac
@@ -100,11 +100,11 @@ printSeparator
 echo ""
 echo "Executing tasks:"
 printf "\tSetup? $SETUP\n"
+printf "\tClear cache? $CLEARCACHE\n"
 printf "\tList? $LIST\n"
 printf "\tPull image? $PULL_IMG\n"
 printf "\tCreate custom image? $CREATE\n"
 printf "\tRun an image? $RUN\n"
-printf "\tClear cache? $CLEARCACHE\n"
 
 function createCaches {
     mkdir -p "$IMG_CACHE"
@@ -158,11 +158,11 @@ function runImage {
     EFI_ARGS=""
     if [ "$EFI_1" ]; then
         cp -a "$EFI_1" "$IMG_CACHE/$NAME/efi_1.fd"
-        EFI_ARGS="$EFI_ARGS -drive if=pflash,format=raw,file=$EFI_1,readonly=on"
+        EFI_ARGS="$EFI_ARGS -drive if=pflash,format=raw,file=$IMG_CACHE/$NAME/efi_1.fd,readonly=on"
     fi
     if [ "$EFI_2" ]; then
         cp -a "$EFI_2" "$IMG_CACHE/$NAME/efi_2.fd"
-        EFI_ARGS="$EFI_ARGS -drive if=pflash,format=raw,file=$EFI_2,discard=on"
+        EFI_ARGS="$EFI_ARGS -drive if=pflash,format=raw,file=$IMG_CACHE/$NAME/efi_2.fd,discard=on"
     fi
 
     $QEMU $QEMU_ARGS $QEMU_MEM_ARGS $EFI_ARGS -drive "if=virtio,format=raw,file=$IMG_CACHE/$NAME/hdd.raw,discard=on"
