@@ -1,0 +1,20 @@
+name: ubuntu-touch-pdk
+version: 'latest'
+summary: Platform Development Kit for Ubuntu Touch
+description: |
+ A development environment for creating the Ubuntu Touch platform.
+ Includes a set of tools to manage and run Ubuntu Touch VMs with
+ compilers and packaging tools for making creating the platform a breeze.
+
+grade: stable
+confinement: classic
+base: core20
+
+apps:
+  pdk:
+    command: ubuntu-touch-pdk
+
+parts:
+  pdk:
+    source: .
+    plugin: dump

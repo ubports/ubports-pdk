@@ -1,0 +1,214 @@
+#!/bin/bash
+
+TMPDIR=""
+
+trap ctrl_c INT
+
+function ctrl_c() {
+    echo "CTRL-C received"
+    if [ "$TMPDIR" == "" ]; then
+        return 0
+    fi
+}
+
+SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+
+PULL_IMG=no
+SETUP=no
+CREATE=no
+CLEARCACHE=no
+LIST=no
+RUN=no
+PRINT_VERSION=no
+NAME=default
+
+# Argument parsing
+while [[ $# -gt 0 ]]; do
+    arg="$1"
+    case $arg in
+        pull)
+            PULL_IMG=yes
+            CREATE=no
+            shift
+        ;;
+        setup)
+            SETUP=yes
+            shift
+        ;;
+        create)
+            CREATE=yes
+            PULL_IMG=no
+            shift
+        ;;
+        clean)
+            CLEARCACHE=yes
+            shift
+        ;;
+        easy)
+            SETUP=yes
+            PULL_IMG=yes
+            shift
+        ;;
+        list)
+            LIST=yes
+            shift
+        ;;
+        run)
+            RUN=yes
+            shift
+        ;;
+        -v|--version)
+            PRINT_VERSION=yes
+            shift
+        ;;
+        "-n="*|"--name="*)
+            NAME="${arg#*=}"
+            shift
+        ;;
+        *)
+            echo "usage: $0 <options> <command> [<command> ..]"
+            echo ""
+            echo "Options:"
+            printf "\t-n=|--name=: Name of the image (optional, defaults to 'default')\n"
+            echo ""
+            echo "Commands:"
+            printf "\tsetup: Host OS preparations (recommended for first-time use)\n"
+            printf "\tcreate: Generate a bootable image locally\n"
+            printf "\tpull: Download pre-generated image\n"
+            printf "\trun: Run desired image\n"
+            printf "\tlist: Show list of cached images\n"
+            printf "\tcleab: Clean up all images\n"
+            exit 1
+        ;;
+    esac
+done
+
+source $SCRIPTPATH/scripts/vars.sh
+
+if [ "$PRINT_VERSION" == "yes" ]; then
+    echo "$VERSION ($CODENAME)"
+    exit 0
+fi
+
+function printSeparator {
+    echo "#####################################"
+}
+
+printSeparator
+echo "Ubuntu Touch Platform Development Kit"
+printSeparator
+echo ""
+echo "Executing tasks:"
+printf "\tSetup? $SETUP\n"
+printf "\tList? $LIST\n"
+printf "\tPull image? $PULL_IMG\n"
+printf "\tCreate custom image? $CREATE\n"
+printf "\tRun an image? $RUN\n"
+printf "\tClear cache? $CLEARCACHE\n"
+
+function createCaches {
+    mkdir -p "$IMG_CACHE"
+}
+
+function clearCaches {
+    if [ -d "$IMG_CACHE" ]; then
+        rm -rf "$IMG_CACHE"
+    fi
+    echo "Cache cleared!"
+}
+
+function setup {
+    bash $SCRIPTPATH/scripts/prerequisites.sh
+}
+
+function createImage {
+    if [ "$(uname -s)" != "Linux" ]; then
+        echo "Creating images not implemented on $(uname -s), skipping."
+        return 0
+    fi
+
+    createCaches
+
+    if [ "$(uname -p)" == "aarch64" ] || [ "$(uname -p)" == "arm64" ]; then
+        ARCH="arm64"
+    else
+        ARCH="amd64"
+    fi
+
+    $SCRIPTPATH/deps/rootfs-builder-debos/debos-docker \
+        -t architecture:"\"$ARCH\"" \
+        -m 5G $SCRIPTPATH/deps/rootfs-builder-debos/focal-pdk.yaml
+}
+
+function pullLatestImage {
+    createCaches
+    echo "Not implemented yet, create an image instead."
+}
+
+function runImage {
+    if [ ! -d "$IMG_CACHE/$NAME" ]; then
+        echo "Cache directory for image '$NAME' doesn't exist."
+        return 1
+    fi
+    if [ ! -f "$IMG_CACHE/$NAME/hdd.raw" ]; then
+        echo "Hard disk for image '$NAME' doesn't exist."
+        return 1
+    fi
+
+    EFI_ARGS=""
+    if [ "$EFI_1" ]; then
+        cp -a "$EFI_1" "$IMG_CACHE/$NAME/efi_1.fd"
+        EFI_ARGS="$EFI_ARGS -drive if=pflash,format=raw,file=$EFI_1,readonly=on"
+    fi
+    if [ "$EFI_2" ]; then
+        cp -a "$EFI_2" "$IMG_CACHE/$NAME/efi_2.fd"
+        EFI_ARGS="$EFI_ARGS -drive if=pflash,format=raw,file=$EFI_2,discard=on"
+    fi
+
+    $QEMU $QEMU_ARGS $QEMU_MEM_ARGS $EFI_ARGS -drive "if=virtio,format=raw,file=$IMG_CACHE/$NAME/hdd.raw,discard=on"
+}
+
+function listImages {
+    printSeparator
+    echo ""
+
+    CACHE_IMAGES=$(ls $IMG_CACHE)
+    if [ "$CACHE_IMAGES" == "" ]; then
+        echo "No images found"
+        return 0
+    fi
+
+    echo "Cached images:"
+    for i in $CACHE_IMAGES; do
+        printf "\t%s\n" $i
+    done
+}
+
+echo ""
+
+if [ "$LIST" == "yes" ]; then
+    listImages
+fi
+
+if [ "$SETUP" == "yes" ]; then
+    setup
+fi
+
+if [ "$CLEARCACHE" == "yes" ]; then
+    clearCaches
+fi
+
+if [ "$PULL_IMG" == "yes" ]; then
+    pullLatestImage
+elif [ "$CREATE" == "yes" ]; then
+    createImage
+fi
+
+if [ "$RUN" == "yes" ]; then
+    echo ""
+    echo "Name of the environment: $NAME"
+    echo ""
+    runImage
+fi
+
+exit 0
