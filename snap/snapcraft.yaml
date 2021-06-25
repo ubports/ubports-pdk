@@ -1,6 +1,6 @@
-name: ubuntu-touch-pdk
+name: ubports-pdk
 version: 'latest'
-summary: Platform Development Kit for Ubuntu Touch
+summary: Platform Development Kit for Ubuntu Touch by UBports
 description: |
  A development environment for creating the Ubuntu Touch platform.
  Includes a set of tools to manage and run Ubuntu Touch VMs with
