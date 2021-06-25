@@ -85,7 +85,15 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Read common script variables
 source $SCRIPTPATH/scripts/vars.sh
+mkdir -p "$CONFIG_ROOT"
+
+# Source the config if available
+if [ -f "$CONFIG_ROOT/config.sh" ]; then
+    source "$CONFIG_ROOT/config.sh"
+    IMG_CACHE="$DATA_ROOT/pdk-image-cache"
+fi
 
 if [ "$PRINT_VERSION" == "yes" ]; then
     echo "$VERSION ($CODENAME)"
@@ -115,6 +123,7 @@ function createCaches {
 function clearCaches {
     if [ -d "$IMG_CACHE" ]; then
         rm -rf "$IMG_CACHE"
+        find "$IMG_CACHE" -type f -name "hdd.raw" -exec rm {} \;
     fi
     echo "Cache cleared!"
 }
@@ -174,6 +183,7 @@ function runImage {
 }
 
 function listImages {
+    createCaches
     printSeparator
     echo ""
 
@@ -185,11 +195,36 @@ function listImages {
 
     echo "Cached images:"
     for i in $CACHE_IMAGES; do
+        if [ ! -f "$i/hdd.raw" ]; then
+            continue;
+        fi
         printf "\t%s\n" $i
     done
 }
 
+function warnMissingData {
+    IS_VALID=0
+    echo "WARNING: You haven't set up your environment yet."
+    echo "Please enter the directory path you want to set up"
+    while [ "$IS_VALID" == "0" ]; do
+        printf "Path: "
+        read NEW_DATA_ROOT
+        if [ -d "$NEW_DATA_ROOT" ]; then
+            IS_VALID=1
+            continue;
+        fi
+        echo "Please make sure the directory exists"
+    done
+    
+    echo "DATA_ROOT=$NEW_DATA_ROOT" >> $CONFIG_ROOT/config.sh
+}
+
 echo ""
+
+if [ "$DATA_ROOT" == "" ]; then
+    warnMissingData
+    exit 0
+fi
 
 if [ "$LIST" == "yes" ]; then
     listImages

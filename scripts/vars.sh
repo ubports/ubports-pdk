@@ -2,7 +2,7 @@ CODENAME=Archangel
 VERSION=0.0.0-rc0
 
 if [ "$SNAP_USER_COMMON" != "" ]; then
-    DATA_ROOT="$SNAP_USER_COMMON"
+    CONFIG_ROOT="$SNAP_USER_COMMON"
     MEM_TOTAL=$(awk '/MemTotal/ { printf "%d \n", $2/1024/1024 }' /proc/meminfo)
 
     if [ "$(uname -p)" == "aarch64" ]; then
@@ -27,7 +27,7 @@ if [ "$SNAP_USER_COMMON" != "" ]; then
         PULL_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-amd64/lastSuccessfulBuild/artifact/$PULL_IMG_NAME"
     fi
 elif [ "$(uname -s)" == "Darwin" ]; then
-    DATA_ROOT="$HOME/Library/Caches/UbuntuTouchPdk"
+    CONFIG_ROOT="$HOME/Library/Caches/UbuntuTouchPdk"
     MEM_TOTAL=$(sysctl -n hw.memsize | awk '{ printf "%d \n", $1/1024/1024/1024 }')
 
     if [ "$(uname -p)" == "arm" ]; then
@@ -65,7 +65,6 @@ elif [ "$(uname -s)" == "Darwin" ]; then
     fi
 fi
 
-IMG_CACHE="$DATA_ROOT/pdk-image-cache"
 MEM_VM=$((MEM_TOTAL/2))
 
 if [ "$MEM_VM" -lt "1" ]; then
