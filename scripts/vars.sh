@@ -10,7 +10,8 @@ if [ "$SNAP_USER_COMMON" != "" ]; then
         QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on \
          -display sdl,gl=on -netdev user,id=ethernet.0 \
          -device rtl8139,netdev=ethernet.0 \
-         -soundhw ac97"
+         -soundhw ac97 \
+         -serial mon:stdio"
         IMG_NAME="ubuntu-touch-pdk-arm64.raw"
         PULL_IMG_NAME="${IMG_NAME}.xz"
         PULL_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-arm64/lastSuccessfulBuild/artifact/$PULL_IMG_NAME"
@@ -19,7 +20,8 @@ if [ "$SNAP_USER_COMMON" != "" ]; then
         QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on \
          -display sdl,gl=on -netdev user,id=ethernet.0 \
          -device rtl8139,netdev=ethernet.0 \
-         -soundhw ac97"
+         -soundhw ac97 \
+         -serial mon:stdio"
         IMG_NAME="ubuntu-touch-pdk-amd64.raw"
         PULL_IMG_NAME="${IMG_NAME}.xz"
         PULL_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-amd64/lastSuccessfulBuild/artifact/$PULL_IMG_NAME"
