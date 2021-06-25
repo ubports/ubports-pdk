@@ -5,12 +5,12 @@ if [ "$SNAP_USER_COMMON" != "" ]; then
     CONFIG_ROOT="$SNAP_USER_COMMON"
     MEM_TOTAL=$(awk '/MemTotal/ { printf "%d \n", $2/1024/1024 }' /proc/meminfo)
 
-    if [ "$(uname -p)" == "aarch64" ]; then
-        QEMU=qemu-ut-pdk.qemu-virgil.arm64
+    if [ "$(uname -m)" == "aarch64" ]; then
+        QEMU=qemu-ut-pdk.arm64
         QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on \
          -display sdl,gl=on -netdev user,id=ethernet.0 \
          -device rtl8139,netdev=ethernet.0 \
-         -soundhw ac97 \
+         -device AC97 \
          -serial mon:stdio"
         IMG_NAME="ubuntu-touch-pdk-arm64.raw"
         PULL_IMG_NAME="${IMG_NAME}.xz"
@@ -20,7 +20,7 @@ if [ "$SNAP_USER_COMMON" != "" ]; then
         QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on \
          -display sdl,gl=on -netdev user,id=ethernet.0 \
          -device rtl8139,netdev=ethernet.0 \
-         -soundhw ac97 \
+         -device AC97 \
          -serial mon:stdio"
         IMG_NAME="ubuntu-touch-pdk-amd64.raw"
         PULL_IMG_NAME="${IMG_NAME}.xz"
