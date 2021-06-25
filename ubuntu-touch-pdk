@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 TMPDIR=""
 
 trap ctrl_c INT
@@ -142,7 +144,10 @@ function createImage {
 
 function pullLatestImage {
     createCaches
-    echo "Not implemented yet, create an image instead."
+    wget -P "$IMG_CACHE/$NAME" --continue "$PULL_URL"
+    echo "Unpackng the archive"
+    unxz "$IMG_CACHE/$NAME/$PULL_IMG_NAME"
+    mv "$IMG_CACHE/$NAME/$IMG_NAME" "$IMG_CACHE/$NAME/hdd.raw"
 }
 
 function runImage {

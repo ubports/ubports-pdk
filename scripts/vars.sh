@@ -11,12 +11,18 @@ if [ "$SNAP_USER_COMMON" != "" ]; then
          -display sdl,gl=on -netdev user,id=ethernet.0 \
          -device rtl8139,netdev=ethernet.0 \
          -soundhw ac97"
+        IMG_NAME="ubuntu-touch-pdk-arm64.raw"
+        PULL_IMG_NAME="${IMG_NAME}.xz"
+        PULL_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-arm64/lastSuccessfulBuild/artifact/$PULL_IMG_NAME"
     else
         QEMU=qemu-virgil
         QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on \
          -display sdl,gl=on -netdev user,id=ethernet.0 \
          -device rtl8139,netdev=ethernet.0 \
          -soundhw ac97"
+        IMG_NAME="ubuntu-touch-pdk-amd64.raw"
+        PULL_IMG_NAME="${IMG_NAME}.xz"
+        PULL_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-amd64/lastSuccessfulBuild/artifact/$PULL_IMG_NAME"
     fi
 elif [ "$(uname -s)" == "Darwin" ]; then
     DATA_ROOT="$HOME/Library/Caches/UbuntuTouchPdk"
@@ -36,6 +42,9 @@ elif [ "$(uname -s)" == "Darwin" ]; then
          -display cocoa,gl=es \
          -netdev user,id=net,ipv6=off \
          -serial mon:stdio"
+        IMG_NAME="ubuntu-touch-pdk-arm64.raw"
+        PULL_IMG_NAME="${IMG_NAME}.xz"
+        PULL_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-arm64/lastSuccessfulBuild/artifact/$PULL_IMG_NAME"
     else
         QEMU=qemu-system-x86_64
         QEMU_ARGS="-machine virt,accel=hvf,highmem=off \
@@ -48,6 +57,9 @@ elif [ "$(uname -s)" == "Darwin" ]; then
          -display cocoa,gl=es \
          -netdev user,id=net,ipv6=off \
          -serial mon:stdio"
+        IMG_NAME="ubuntu-touch-pdk-amd64.raw"
+        PULL_IMG_NAME="${IMG_NAME}.xz"
+        PULL_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-amd64/lastSuccessfulBuild/artifact/$PULL_IMG_NAME"
     fi
 fi
 
