@@ -6,7 +6,7 @@ if [ "$SNAP_USER_COMMON" != "" ]; then
     MEM_TOTAL=$(awk '/MemTotal/ { printf "%d \n", $2/1024/1024 }' /proc/meminfo)
 
     if [ "$(uname -p)" == "aarch64" ]; then
-        QEMU=qemu-virgil.arm64
+        QEMU=qemu-ut-pdk.qemu-virgil.arm64
         QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on \
          -display sdl,gl=on -netdev user,id=ethernet.0 \
          -device rtl8139,netdev=ethernet.0 \
@@ -15,7 +15,7 @@ if [ "$SNAP_USER_COMMON" != "" ]; then
         PULL_IMG_NAME="${IMG_NAME}.xz"
         PULL_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-arm64/lastSuccessfulBuild/artifact/$PULL_IMG_NAME"
     else
-        QEMU=qemu-virgil
+        QEMU=qemu-ut-pdk.qemu-virgil
         QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on \
          -display sdl,gl=on -netdev user,id=ethernet.0 \
          -device rtl8139,netdev=ethernet.0 \
