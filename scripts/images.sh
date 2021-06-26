@@ -19,6 +19,7 @@ function createImage {
 
 function pullLatestImage {
     createCaches
+    wget -P "$IMG_CACHE/$NAME" --continue "$KEY_PULL_URL"
     wget -P "$IMG_CACHE/$NAME" --continue "$PULL_URL"
     echo "Unpacking the archive"
     unxz "$IMG_CACHE/$NAME/$PULL_IMG_NAME"
