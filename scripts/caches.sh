@@ -4,8 +4,9 @@ function createCaches {
 
 function clearCaches {
     if [ -d "$IMG_CACHE" ]; then
-        rm -rf "$IMG_CACHE"
-        find "$IMG_CACHE" -type f -name "hdd.raw" -exec rm {} \;
+        find "$IMG_CACHE" -type f -mindepth 2 -maxdepth 2 -name "efi_1.fd" -exec rm {} \;
+        find "$IMG_CACHE" -type f -mindepth 2 -maxdepth 2 -name "efi_2.fd" -exec rm {} \;
+        find "$IMG_CACHE" -type f -mindepth 2 -maxdepth 2 -name "hdd.raw" -exec rm {} \;
     fi
     echo "Cache cleared!"
 }
