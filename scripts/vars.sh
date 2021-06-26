@@ -14,7 +14,7 @@ if [ "$SNAP_USER_COMMON" != "" ]; then
          -serial mon:stdio"
         IMG_NAME="ubuntu-touch-pdk-arm64.raw"
         PULL_IMG_NAME="${IMG_NAME}.xz"
-        PULL_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-arm64/lastSuccessfulBuild/artifact/$PULL_IMG_NAME"
+        ARTIFACTS_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-arm64/lastSuccessfulBuild/artifact"
     else
         QEMU=qemu-ut-pdk.qemu-virgil
         QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on \
@@ -24,7 +24,7 @@ if [ "$SNAP_USER_COMMON" != "" ]; then
          -serial mon:stdio"
         IMG_NAME="ubuntu-touch-pdk-amd64.raw"
         PULL_IMG_NAME="${IMG_NAME}.xz"
-        PULL_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-amd64/lastSuccessfulBuild/artifact/$PULL_IMG_NAME"
+        ARTIFACTS_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-amd64/lastSuccessfulBuild/artifact"
     fi
 elif [ "$(uname -s)" == "Darwin" ]; then
     CONFIG_ROOT="$HOME/Library/Caches/UbuntuTouchPdk"
@@ -46,7 +46,7 @@ elif [ "$(uname -s)" == "Darwin" ]; then
          -serial mon:stdio"
         IMG_NAME="ubuntu-touch-pdk-arm64.raw"
         PULL_IMG_NAME="${IMG_NAME}.xz"
-        PULL_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-arm64/lastSuccessfulBuild/artifact/$PULL_IMG_NAME"
+        ARTIFACTS_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-arm64/lastSuccessfulBuild/artifact"
     else
         QEMU=qemu-system-x86_64
         QEMU_ARGS="-machine virt,accel=hvf,highmem=off \
@@ -61,9 +61,12 @@ elif [ "$(uname -s)" == "Darwin" ]; then
          -serial mon:stdio"
         IMG_NAME="ubuntu-touch-pdk-amd64.raw"
         PULL_IMG_NAME="${IMG_NAME}.xz"
-        PULL_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-amd64/lastSuccessfulBuild/artifact/$PULL_IMG_NAME"
+        ARTIFACTS_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-amd64/lastSuccessfulBuild/artifact"
     fi
 fi
+
+KEY_PULL_URL="$ARTIFACTS_URL/id_rsa"
+PULL_URL="$ARTIFACTS_URL/$PULL_IMG_NAME"
 
 MEM_VM=$((MEM_TOTAL/2))
 
