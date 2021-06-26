@@ -11,6 +11,11 @@ function ctrl_c() {
     if [ "$TMPDIR" == "" ]; then
         return 0
     fi
+
+    for JOB in `jobs -p`; do
+        kill -9 $JOB
+    done
+
     exit 1
 }
 
@@ -120,38 +125,51 @@ printf "\tRun an image? $RUN\n"
 source $SCRIPTPATH/scripts/caches.sh
 source $SCRIPTPATH/scripts/setup.sh
 source $SCRIPTPATH/scripts/images.sh
+source $SCRIPTPATH/scripts/mounts.sh
 
 echo ""
 
+# Warn when something's not right
 if [ "$DATA_ROOT" == "" ]; then
     echo "WARNING: You haven't set up your environment yet."
     setup
     exit 0
 fi
 
+# List available images
 if [ "$LIST" == "yes" ]; then
     listImages
 fi
 
+# Run through the setup
 if [ "$SETUP" == "yes" ]; then
     setup
 fi
 
+# Clear the cache
 if [ "$CLEARCACHE" == "yes" ]; then
     clearCaches
 fi
 
+# Decide on pulling or creating an image
 if [ "$PULL_IMG" == "yes" ]; then
     pullLatestImage
 elif [ "$CREATE" == "yes" ]; then
     createImage
 fi
 
+# Aaand run it!
 if [ "$RUN" == "yes" ]; then
     echo ""
     echo "Name of the environment: $NAME"
     echo ""
+    generateSshdConfig
+    startSshd
     runImage
 fi
+
+for JOB in `jobs -p`; do
+    kill -9 $JOB
+done
 
 exit 0

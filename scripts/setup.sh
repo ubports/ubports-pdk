@@ -18,4 +18,5 @@ function warnMissingData {
 function setup {
     bash $SCRIPTPATH/scripts/prerequisites.sh
     warnMissingData
+    ssh-keygen -q -t rsa -N '' -f "$DATA_ROOT/sshd/sshd_host_key"
 }
