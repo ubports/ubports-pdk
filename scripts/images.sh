@@ -32,6 +32,7 @@ function runImage {
     fi
     if [ ! -f "$IMG_CACHE/$NAME/hdd.raw" ]; then
         echo "Hard disk for image '$NAME' doesn't exist."
+        echo "Consider pulling or creating an image yourself."
         return 1
     fi
 
@@ -53,7 +54,7 @@ function listImages {
     printSeparator
     echo ""
 
-    CACHE_IMAGES=$(ls $IMG_CACHE)
+    CACHE_IMAGES=$(ls "$IMG_CACHE")
     if [ "$CACHE_IMAGES" == "" ]; then
         echo "No images found"
         return 0
@@ -61,9 +62,9 @@ function listImages {
 
     echo "Cached images:"
     for i in $CACHE_IMAGES; do
-        if [ ! -f "$i/hdd.raw" ]; then
+        if [ ! -f "$IMG_CACHE/$i/hdd.raw" ]; then
             continue;
         fi
-        printf "\t%s\n" $i
+        printf "\t%s\n" "$i"
     done
 }
