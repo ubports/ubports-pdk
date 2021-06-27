@@ -6,9 +6,6 @@ HOST_OS=$(uname -s)
 
 echo "Installing prerequisites"
 if [ "$HOST_OS" == "Darwin" ]; then
-    #if [ "$(arch)" == "arm" ];
-    #   softwareupdate --install-rosetta
-    #fi
     brew install knazarov/qemu-virgl/qemu-virgl
     brew install wget
 elif [ "$HOST_OS" == "Linux" ]; then

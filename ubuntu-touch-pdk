@@ -6,16 +6,11 @@ TMPDIR=""
 
 trap ctrl_c INT
 
-function ctrl_c() {
+function ctrl_c {
     echo "CTRL-C received"
-    if [ "$TMPDIR" == "" ]; then
-        return 0
-    fi
-
     for JOB in `jobs -p`; do
         kill -9 $JOB
     done
-
     exit 1
 }
 
@@ -144,6 +139,8 @@ fi
 # Run through the setup
 if [ "$SETUP" == "yes" ]; then
     setup
+    generateSettingsImage
+    copySettingsIntoImage
 fi
 
 # Clear the cache
@@ -163,8 +160,6 @@ if [ "$RUN" == "yes" ]; then
     echo ""
     echo "Name of the environment: $NAME"
     echo ""
-    generateSshdConfig
-    startSshd
     runImage
 fi
 

@@ -65,7 +65,7 @@ elif [ "$(uname -s)" == "Darwin" ]; then
     fi
 fi
 
-KEY_PULL_URL="$ARTIFACTS_URL/id_rsa"
+KEY_PULL_URL="$ARTIFACTS_URL/id_rsa.pub"
 PULL_URL="$ARTIFACTS_URL/$PULL_IMG_NAME"
 
 MEM_VM=$((MEM_TOTAL/2))

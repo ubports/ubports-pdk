@@ -1,19 +1,38 @@
-SSHD_CONFIG="$DATA_ROOT/sshd/sshd_config"
+if [ "$(uname -s)" == "Darwin" ]; then
+    SETTINGS_FILE="$DATA_ROOT/sshd/settings.dmg"
+elif [ "$(uname -s)" == "Linux" ]; then
+    SETTINGS_FILE="$DATA_ROOT/sshd/settings.raw"
+fi
 
-function generateSshdConfig {
-    OUT_FILE="$SSHD_CONFIG"
-    CHROOT_DIR="$DATA_ROOT/sources"
-    SSH_KEY="$DATA_ROOT/sshd/sshd_host_key"
-
-    echo "UsePrivilegeSeparation no" > "$OUT_FILE"
-    echo "Port 2022" >> "$OUT_FILE"
-    echo "HostKey $SSH_KEY" >> "$OUT_FILE"
-    echo "" >> "$OUT_FILE"
-    echo "Match User $USER" >> "$OUT_FILE"
-    echo "ChrootDirectory $CHROOT_DIR" >> "$OUT_FILE"
+function generateSettingsImage {
+    echo "Generating image with settings"
+    if [ "$(uname -s)" == "Darwin" ]; then
+        if [ -f "$SETTINGS_FILE" ]; then
+            rm "$SETTINGS_FILE"
+        fi
+        hdiutil create -size 100m -fs FAT32 -volname PDKSETTINGS "$SETTINGS_FILE"
+    elif [ "$(uname -s)" == "Linux" ]; then
+        dd if=/dev/zero of="$SETTINGS_FILE" bs=1M count=100
+        mkfs.vfat -F32 "$SETTINGS_FILE"
+        fatlabel "$SETTINGS_FILE" PDKSETTINGS
+    fi
 }
 
-function startSshd {
-    SSH_PID_FILE="$CONFIG_ROOT"
-    /usr/bin/sshd -f "$SSHD_CONFIG" -D &
+function copySettingsIntoImage {
+    echo "Copying settings to image"
+    if [ "$(uname -s)" == "Darwin" ]; then
+        hdiutil attach "$SETTINGS_FILE"
+        cp "$CONFIG_ROOT/config.sh" "/Volumes/PDKSETTINGS/config.sh"
+        cp "$DATA_ROOT/sshd/id_rsa" "/Volumes/PDKSETTINGS/id_rsa"
+        cp "$DATA_ROOT/sshd/id_rsa.pub" "/Volumes/PDKSETTINGS/id_rsa.pub"
+        hdiutil detach "/Volumes/PDKSETTINGS"
+    elif [ "$(uname -s)" == "Linux" ]; then
+        MNT_DIR=$(mktemp -d)
+        sudo mount "$SETTINGS_FILE" "$MNT_DIR"
+        cp "$CONFIG_ROOT/config.sh" "$MNT_DIR/config.sh"
+        cp "$DATA_ROOT/sshd/id_rsa" "$MNT_DIR/id_rsa"
+        cp "$DATA_ROOT/sshd/id_rsa.pub" "$MNT_DIR/id_rsa.pub"
+        sudo umount "$MNT_DIR"
+        rm -rf "$MNT_DIR"
+    fi
 }

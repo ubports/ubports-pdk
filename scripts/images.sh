@@ -19,7 +19,6 @@ function createImage {
 
 function pullLatestImage {
     createCaches
-    wget -P "$IMG_CACHE/$NAME" --continue "$KEY_PULL_URL"
     wget -P "$IMG_CACHE/$NAME" --continue "$PULL_URL"
     echo "Unpacking the archive"
     unxz "$IMG_CACHE/$NAME/$PULL_IMG_NAME"
@@ -47,7 +46,9 @@ function runImage {
         EFI_ARGS="$EFI_ARGS -drive if=pflash,format=raw,file=$IMG_CACHE/$NAME/efi_2.fd,discard=on"
     fi
 
-    $QEMU $QEMU_ARGS $QEMU_MEM_ARGS $EFI_ARGS -drive "if=virtio,format=raw,file=$IMG_CACHE/$NAME/hdd.raw,discard=on"
+    $QEMU $QEMU_ARGS $QEMU_MEM_ARGS $EFI_ARGS \
+        -drive "if=virtio,format=raw,file=$IMG_CACHE/$NAME/hdd.raw,discard=on" \
+        -drive "if=virtio,format=raw,file=$SETTINGS_FILE,readonly=on"
 }
 
 function listImages {
