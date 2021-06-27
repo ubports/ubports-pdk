@@ -15,12 +15,19 @@ function warnMissingData {
     echo "DATA_ROOT=$NEW_DATA_ROOT" > "$CONFIG_ROOT/config.sh"
     echo "SRC_ROOT=$NEW_DATA_ROOT/sources" >> "$CONFIG_ROOT/config.sh"
     echo "USER=$USER" >> "$CONFIG_ROOT/config.sh"
+    source "$CONFIG_ROOT/config.sh"
 }
 
 function setup {
     bash $SCRIPTPATH/scripts/prerequisites.sh
     warnMissingData
 
+    if [ ! -d "$DATA_ROOT/sources" ]; then
+        mkdir -p "$DATA_ROOT/sources"
+    fi
+    if [ ! -d "$DATA_ROOT/sshd" ]; then
+        mkdir -p "$DATA_ROOT/sshd"
+    fi
     if [ -f "$DATA_ROOT/sshd/id_rsa" ]; then
         rm "$DATA_ROOT/sshd/id_rsa"
     fi

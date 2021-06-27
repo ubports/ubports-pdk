@@ -29,9 +29,9 @@ function copySettingsIntoImage {
     elif [ "$(uname -s)" == "Linux" ]; then
         MNT_DIR=$(mktemp -d)
         sudo mount "$SETTINGS_FILE" "$MNT_DIR"
-        cp "$CONFIG_ROOT/config.sh" "$MNT_DIR/config.sh"
-        cp "$DATA_ROOT/sshd/id_rsa" "$MNT_DIR/id_rsa"
-        cp "$DATA_ROOT/sshd/id_rsa.pub" "$MNT_DIR/id_rsa.pub"
+        sudo cp "$CONFIG_ROOT/config.sh" "$MNT_DIR/config.sh"
+        sudo cp "$DATA_ROOT/sshd/id_rsa" "$MNT_DIR/id_rsa"
+        sudo cp "$DATA_ROOT/sshd/id_rsa.pub" "$MNT_DIR/id_rsa.pub"
         sudo umount "$MNT_DIR"
         rm -rf "$MNT_DIR"
     fi
