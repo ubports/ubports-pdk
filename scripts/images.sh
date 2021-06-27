@@ -47,6 +47,7 @@ function runImage {
     fi
 
     $QEMU $QEMU_ARGS $QEMU_MEM_ARGS $EFI_ARGS \
+        -smp "$NPROC_VM" \
         -drive "if=virtio,format=raw,file=$IMG_CACHE/$NAME/hdd.raw,discard=on" \
         -drive "if=virtio,format=raw,file=$SETTINGS_FILE,readonly=on"
 }
