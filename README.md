@@ -12,8 +12,7 @@ A way to help the development of Ubuntu Touch
 
 ## Installation:
 
-- Linux (Snap): Install the PDK from the Snap store (`sudo snap install ubports-pdk`)
-- macOS & other Linux: Clone this repository or download a copy of it from GitHub
+- macOS & Linux: Clone this repository or download a copy of it from GitHub
 
 
 ## Usage:
