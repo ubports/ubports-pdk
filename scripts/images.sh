@@ -59,6 +59,18 @@ function initImageVars {
         else
             QEMU_ARGS="$QEMU_ARGS"
         fi
+    elif [ "$OS" == "WSL" ]; then
+        QEMU=qemu-system-x86_64-softmmu.exe
+        QEMU_ARGS="\
+            -cpu Haswell-v4 \
+            -device intel-hda -device hda-output \
+            -device virtio-gpu-pci \
+            -device virtio-keyboard-pci \
+            -device virtio-net-pci,netdev=net \
+            -device virtio-mouse-pci \
+            -display sdl,gl=on \
+            -netdev user,id=net,ipv6=off \
+            -serial mon:stdio"
     fi
 }
 
