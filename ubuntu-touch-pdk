@@ -2,8 +2,6 @@
 
 set -e
 
-TMPDIR=""
-
 trap ctrl_c INT
 
 function ctrl_c {
@@ -14,11 +12,24 @@ function ctrl_c {
     exit 1
 }
 
+# Set these globally first, they're important
 if [ "$(uname -m)" == "aarch64" ] || [ "$(uname -p)" == "arm64" ]  || [ "$(uname -m)" == "arm64" ]; then
     HOST_ARCH="arm64"
 else
     HOST_ARCH="amd64"
 fi
+
+if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null ; then
+    OS="WSL"
+elif [ "$(uname -s)" == "Linux" ]; then
+    OS="Linux"
+elif [ "$(uname -s)" == "Darwin" ]; then
+    OS="Darwin"
+else
+    echo "ERROR: Unsupported OS detected. This only works with Linux & macOS"
+    exit 1
+fi
+
 
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 

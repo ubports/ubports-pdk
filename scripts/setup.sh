@@ -19,7 +19,7 @@ function warnMissingData {
 }
 
 function tryInstallSshd {
-    if [ "$(uname -s)" == "Linux" ]; then
+    if [ "$OS" == "Linux" ] || [ "$OS" == "WSL" ]; then
         if [ -f /usr/bin/apt ]; then
             sudo apt install openssh-server && \
                 sudo systemctl enable ssh && \
@@ -27,13 +27,13 @@ function tryInstallSshd {
         else
             echo "Unknown package manager used, please add support for it in UBports PDK".
         fi
-    elif [ "$(uname -s)" == "Darwin" ]; then
+    elif [ "$OS" == "Darwin" ]; then
         sudo systemsetup -setremotelogin on && echo "SSH enabled successfully!"
     fi
 }
 
 function checkSsh {
-    if [ "$(uname -s)" == "Linux" ]; then
+    if [ "$OS" == "Linux" ] || [ "$OS" == "WSL" ]; then
         systemctl status ssh 1&> /dev/null
         if [ "$?" != "0" ]; then
             echo "WARNING: The OpenSSH server seems to be missing or not activated, please install it using your package manager."
@@ -46,7 +46,7 @@ function checkSsh {
                 esac
             done
         fi
-    elif [ "$(uname -s)" == "Darwin" ]; then
+    elif [ "$OS" == "Darwin" ]; then
         OUTPUT=$(sudo systemsetup -getremotelogin)
         if [ "$OUTPUT" != "Remote Login: On" ]; then
             echo "WARNING: SSH doesn't seem to be enabled!"
@@ -63,7 +63,7 @@ function checkSsh {
 }
 
 function setup {
-    bash $SCRIPTPATH/scripts/prerequisites.sh
+    source $SCRIPTPATH/scripts/prerequisites.sh
     warnMissingData
 
     if [ ! -d "$DATA_ROOT/sources" ]; then

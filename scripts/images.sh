@@ -1,5 +1,5 @@
 function initImageVars {
-    if [ "$(uname -s)" == "Linux" ]; then
+    if [ "$OS" == "Linux" ]; then
         if [ "$ARCH" == "arm64" ]; then
             EFI_1="/snap/qemu-ut-pdk/current/usr/share/qemu/edk2-aarch64-code.fd"
             EFI_2="/snap/qemu-ut-pdk/current/usr/share/qemu/edk2-arm-vars.fd"
@@ -25,7 +25,7 @@ function initImageVars {
         else
             QEMU_ARGS="-machine virt -device virtio-gpu-pci,virgl=on -display sdl,gl=on $QEMU_ARGS"
         fi
-    elif [ "$(uname -s)" == "Darwin" ]; then
+    elif [ "$OS" == "Darwin" ]; then
         if [ "$ARCH" == "arm64" ]; then
             EFI_1="$(dirname $(which qemu-img))/../share/qemu/edk2-aarch64-code.fd"
             EFI_2="$(dirname $(which qemu-img))/../share/qemu/edk2-arm-vars.fd"
@@ -63,8 +63,8 @@ function initImageVars {
 }
 
 function createImage {
-    if [ "$(uname -s)" != "Linux" ]; then
-        echo "Creating images not implemented on $(uname -s), skipping."
+    if [ "$OS" != "Linux" ]; then
+        echo "Creating images not implemented on $OS, skipping."
         return 0
     fi
 
