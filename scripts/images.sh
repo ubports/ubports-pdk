@@ -1,3 +1,63 @@
+function initImageVars {
+    if [ "$(uname -s)" == "Linux" ]; then
+        if [ "$ARCH" == "arm64" ]; then
+            QEMU=qemu-ut-pdk.arm64
+            QEMU_ARGS="-device virtio-vga,virgl=on \
+                -display sdl,gl=on -netdev user,id=ethernet.0 \
+                -device rtl8139,netdev=ethernet.0 \
+                -device AC97 \
+                -serial mon:stdio"
+        else
+            QEMU=qemu-ut-pdk.qemu-virgil
+            QEMU_ARGS="-device virtio-vga,virgl=on \
+                -display sdl,gl=on -netdev user,id=ethernet.0 \
+                -device rtl8139,netdev=ethernet.0 \
+                -device AC97 \
+                -serial mon:stdio"
+        fi
+
+        if [ "$HOST_ARCH" == "$ARCH" ]; then
+            QEMU_ARGS="-enable-kvm $QEMU_ARGS"
+        else
+            QEMU_ARGS="$QEMU_ARGS"
+        fi
+    elif [ "$(uname -s)" == "Darwin" ]; then
+        if [ "$ARCH" == "arm64" ]; then
+            EFI_1="$(dirname $(which qemu-img))/../share/qemu/edk2-aarch64-code.fd"
+            EFI_2="$(dirname $(which qemu-img))/../share/qemu/edk2-arm-vars.fd"
+            QEMU=qemu-system-aarch64
+            QEMU_ARGS="\
+                -cpu cortex-a72 \
+                -device intel-hda -device hda-output \
+                -device virtio-gpu-pci \
+                -device virtio-keyboard-pci \
+                -device virtio-net-pci,netdev=net \
+                -device virtio-mouse-pci \
+                -display cocoa,gl=es \
+                -netdev user,id=net,ipv6=off \
+                -serial mon:stdio"
+        else
+            QEMU=qemu-system-x86_64
+            QEMU_ARGS="\
+                -cpu Haswell-v4 \
+                -device intel-hda -device hda-output \
+                -device virtio-gpu-pci \
+                -device virtio-keyboard-pci \
+                -device virtio-net-pci,netdev=net \
+                -device virtio-mouse-pci \
+                -display cocoa,gl=es \
+                -netdev user,id=net,ipv6=off \
+                -serial mon:stdio"
+        fi
+
+        if [ "$HOST_ARCH" == "$ARCH" ]; then
+            QEMU_ARGS="-machine virt,accel=hvf,highmem=off $QEMU_ARGS"
+        else
+            QEMU_ARGS="$QEMU_ARGS"
+        fi
+    fi
+}
+
 function createImage {
     if [ "$(uname -s)" != "Linux" ]; then
         echo "Creating images not implemented on $(uname -s), skipping."
@@ -5,12 +65,6 @@ function createImage {
     fi
 
     createCaches
-
-    if [ "$(uname -m)" == "aarch64" ] || [ "$(uname -p)" == "arm64" ]; then
-        ARCH="arm64"
-    else
-        ARCH="amd64"
-    fi
 
     $SCRIPTPATH/deps/rootfs-builder-debos/debos-docker \
         -t architecture:"\"$ARCH\"" \
@@ -23,6 +77,7 @@ function pullLatestImage {
     echo "Unpacking the archive"
     unxz "$IMG_CACHE/$NAME/$PULL_IMG_NAME"
     mv "$IMG_CACHE/$NAME/$IMG_NAME" "$IMG_CACHE/$NAME/hdd.raw"
+    echo "ARCH=$ARCH" > "$IMG_CACHE/$NAME/info.sh"
 }
 
 function runImage {
@@ -35,6 +90,8 @@ function runImage {
         echo "Consider pulling or creating an image yourself."
         return 1
     fi
+
+    source "$IMG_CACHE/$NAME/info.sh"
 
     EFI_ARGS=""
     if [ "$EFI_1" ]; then
@@ -68,6 +125,13 @@ function listImages {
         if [ ! -f "$IMG_CACHE/$i/hdd.raw" ]; then
             continue;
         fi
-        printf "\t%s\n" "$i"
+        if [ -f "$IMG_CACHE/$i/info.sh" ]; then
+            IMG_ARCH=$(cat "$IMG_CACHE/$i/info.sh" | awk -F"=" '{ print $2 }')
+        fi
+        if [ "$IMG_ARCH" == "" ]; then
+            IMG_ARCH="$ARCH"
+        fi
+        printf "\t- %s (%s)\n" "$i" "$IMG_ARCH"
+        unset IMG_ARCH
     done
 }

@@ -14,6 +14,12 @@ function ctrl_c {
     exit 1
 }
 
+if [ "$(uname -m)" == "aarch64" ] || [ "$(uname -p)" == "arm64" ]  || [ "$(uname -m)" == "arm64" ]; then
+    HOST_ARCH="arm64"
+else
+    HOST_ARCH="amd64"
+fi
+
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 PULL_IMG=no
@@ -24,6 +30,23 @@ LIST=no
 RUN=no
 PRINT_VERSION=no
 NAME=default
+ARCH="$HOST_ARCH"
+
+function printHelp {
+    echo "usage: $0 <options> <command> [<command> ..]"
+    echo ""
+    echo "Options:"
+    printf "\t-a=|--arch=: Architecture override (optional, defaults to '$HOST_ARCH')\n"
+    printf "\t-n=|--name=: Name of the image (optional, defaults to 'default')\n"
+    echo ""
+    echo "Commands:"
+    printf "\tsetup: Host OS preparations (recommended for first-time use)\n"
+    printf "\tclear: Clean up all images\n"
+    printf "\tcreate: Generate a bootable image locally\n"
+    printf "\tpull: Download pre-generated image\n"
+    printf "\trun: Run desired image\n"
+    printf "\tlist: Show list of cached images\n"
+}
 
 # Argument parsing
 while [[ $# -gt 0 ]]; do
@@ -68,19 +91,16 @@ while [[ $# -gt 0 ]]; do
             NAME="${arg#*=}"
             shift
         ;;
+        "-a="*|"--arch="*)
+            ARCH="${arg#*=}"
+            shift
+        ;;
+        -h|--help)
+            printHelp
+            exit 0
+        ;;
         *)
-            echo "usage: $0 <options> <command> [<command> ..]"
-            echo ""
-            echo "Options:"
-            printf "\t-n=|--name=: Name of the image (optional, defaults to 'default')\n"
-            echo ""
-            echo "Commands:"
-            printf "\tsetup: Host OS preparations (recommended for first-time use)\n"
-            printf "\tclear: Clean up all images\n"
-            printf "\tcreate: Generate a bootable image locally\n"
-            printf "\tpull: Download pre-generated image\n"
-            printf "\trun: Run desired image\n"
-            printf "\tlist: Show list of cached images\n"
+            printHelp
             exit 1
         ;;
     esac
@@ -121,6 +141,7 @@ source $SCRIPTPATH/scripts/caches.sh
 source $SCRIPTPATH/scripts/setup.sh
 source $SCRIPTPATH/scripts/images.sh
 source $SCRIPTPATH/scripts/mounts.sh
+initImageVars
 
 echo ""
 
