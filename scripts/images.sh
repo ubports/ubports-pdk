@@ -1,6 +1,8 @@
 function initImageVars {
     if [ "$(uname -s)" == "Linux" ]; then
         if [ "$ARCH" == "arm64" ]; then
+            EFI_1="/snap/qemu-ut-pdk/current/usr/share/qemu/edk2-aarch64-code.fd"
+            EFI_2="/snap/qemu-ut-pdk/current/usr/share/qemu/edk2-arm-vars.fd"
             QEMU=qemu-ut-pdk.arm64
             QEMU_ARGS="-device virtio-vga,virgl=on \
                 -display sdl,gl=on -netdev user,id=ethernet.0 \
