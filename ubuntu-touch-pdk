@@ -151,6 +151,8 @@ echo ""
 if [ "$DATA_ROOT" == "" ]; then
     echo "WARNING: You haven't set up your environment yet."
     setup
+    generateSettingsImage
+    copySettingsIntoImage
     exit 0
 fi
 

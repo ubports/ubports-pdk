@@ -93,5 +93,4 @@ function setup {
         echo "Inserting ssh key into authorized keys list"
         echo "$PUBKEY_CONTENTS" >> $HOME/.ssh/authorized_keys
     fi
-    echo "Checking for OpenSSH service"
 }
