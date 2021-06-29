@@ -144,6 +144,7 @@ source $SCRIPTPATH/scripts/setup.sh
 source $SCRIPTPATH/scripts/images.sh
 source $SCRIPTPATH/scripts/mounts.sh
 initImageVars
+initSettingsVars
 
 echo ""
 
