@@ -4,24 +4,26 @@ function initImageVars {
             EFI_1="/snap/qemu-ut-pdk/current/usr/share/qemu/edk2-aarch64-code.fd"
             EFI_2="/snap/qemu-ut-pdk/current/usr/share/qemu/edk2-arm-vars.fd"
             QEMU=qemu-ut-pdk.arm64
-            QEMU_ARGS="-device virtio-vga,virgl=on \
-                -display sdl,gl=on -netdev user,id=ethernet.0 \
+            QEMU_ARGS="\
+                -cpu cortex-a72 \
+                -netdev user,id=ethernet.0 \
                 -device rtl8139,netdev=ethernet.0 \
                 -device AC97 \
                 -serial mon:stdio"
         else
             QEMU=qemu-ut-pdk.qemu-virgil
-            QEMU_ARGS="-device virtio-vga,virgl=on \
-                -display sdl,gl=on -netdev user,id=ethernet.0 \
+            QEMU_ARGS="\
+                -cpu Haswell-v4 \
+                -netdev user,id=ethernet.0 \
                 -device rtl8139,netdev=ethernet.0 \
                 -device AC97 \
                 -serial mon:stdio"
         fi
 
         if [ "$HOST_ARCH" == "$ARCH" ]; then
-            QEMU_ARGS="-enable-kvm $QEMU_ARGS"
+            QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on -display sdl,gl=on $QEMU_ARGS"
         else
-            QEMU_ARGS="$QEMU_ARGS"
+            QEMU_ARGS="-machine virt -device virtio-gpu-pci,virgl=on -display sdl,gl=on $QEMU_ARGS"
         fi
     elif [ "$(uname -s)" == "Darwin" ]; then
         if [ "$ARCH" == "arm64" ]; then
