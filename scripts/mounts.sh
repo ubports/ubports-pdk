@@ -1,11 +1,14 @@
-if [ "$(uname -s)" == "Darwin" ]; then
-    SETTINGS_FILE="$DATA_ROOT/sshd/settings.dmg"
-elif [ "$(uname -s)" == "Linux" ]; then
-    SETTINGS_FILE="$DATA_ROOT/sshd/settings.raw"
-fi
+function initSettingsVars {
+	if [ "$(uname -s)" == "Darwin" ]; then
+	    SETTINGS_FILE="$DATA_ROOT/sshd/settings.dmg"
+	elif [ "$(uname -s)" == "Linux" ]; then
+	    SETTINGS_FILE="$DATA_ROOT/sshd/settings.raw"
+	fi
+}
 
 function generateSettingsImage {
     echo "Generating image with settings"
+    initSettingsVars
     if [ "$(uname -s)" == "Darwin" ]; then
         if [ -f "$SETTINGS_FILE" ]; then
             rm "$SETTINGS_FILE"
@@ -20,6 +23,7 @@ function generateSettingsImage {
 
 function copySettingsIntoImage {
     echo "Copying settings to image"
+    initSettingsVars
     if [ "$(uname -s)" == "Darwin" ]; then
         hdiutil attach "$SETTINGS_FILE"
         cp "$CONFIG_ROOT/config.sh" "/Volumes/PDKSETTINGS/config.sh"
