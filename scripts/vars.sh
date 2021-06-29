@@ -2,8 +2,12 @@ CODENAME=Archangel
 VERSION=0.0.0-rc0
 
 function initCommonVars {
-    if [ "$SNAP_USER_COMMON" != "" ]; then
-        CONFIG_ROOT="$SNAP_USER_COMMON"
+    if [ "$(uname -s)" == "Linux" ]; then
+        if [ "$SNAP_USER_COMMON" != "" ]; then
+            CONFIG_ROOT="$SNAP_USER_COMMON"
+        else
+            CONFIG_ROOT="$HOME/.config/UbuntuTouchPdk"
+        fi
         MEM_TOTAL=$(awk '/MemTotal/ { printf "%d \n", $2/1024/1024 }' /proc/meminfo)
         NPROCS="$(nproc --all)"
     elif [ "$(uname -s)" == "Darwin" ]; then
