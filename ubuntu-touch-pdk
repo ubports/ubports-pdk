@@ -38,6 +38,7 @@ function printHelp {
     echo "Options:"
     printf "\t-a=|--arch=: Architecture override (optional, defaults to '$HOST_ARCH')\n"
     printf "\t-n=|--name=: Name of the image (optional, defaults to 'default')\n"
+    printf "\t             Possible values: arm64, amd64\n"
     echo ""
     echo "Commands:"
     printf "\tsetup: Host OS preparations (recommended for first-time use)\n"
