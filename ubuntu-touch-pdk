@@ -149,24 +149,16 @@ initSettingsVars
 echo ""
 
 # Warn when something's not right
-if [ "$DATA_ROOT" == "" ]; then
-    echo "WARNING: You haven't set up your environment yet."
+if [ "$DATA_ROOT" == "" ] || [ "$SETUP" == "yes" ]; then
+    echo "WARNING: You haven't set up your environment yet. Continuing with setup..."
     setup
     generateSettingsImage
     copySettingsIntoImage
-    exit 0
 fi
 
 # List available images
 if [ "$LIST" == "yes" ]; then
     listImages
-fi
-
-# Run through the setup
-if [ "$SETUP" == "yes" ]; then
-    setup
-    generateSettingsImage
-    copySettingsIntoImage
 fi
 
 # Clear the cache
