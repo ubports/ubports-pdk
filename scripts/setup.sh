@@ -22,7 +22,7 @@ function warnMissingData {
 function tryInstallSshd {
     if [ "$(uname -s)" == "Linux" ]; then
         if [ -f /usr/bin/apt ]; then
-            sudo apt install openssh-server && \
+            sudo apt install openssh-client && openssh-server && \
                 sudo systemctl enable ssh && \
                 echo "SSH enabled successfully!"
         else
