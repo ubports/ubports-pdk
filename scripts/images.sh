@@ -25,6 +25,7 @@ function initImageVars {
         else
             QEMU_ARGS="-machine virt -device virtio-gpu-pci,virgl=on -display sdl,gl=on $QEMU_ARGS"
         fi
+        QEMU_ARGS="-device virtio-keyboard-pci -device virtio-mouse-pci $QEMU_ARGS"
     elif [ "$(uname -s)" == "Darwin" ]; then
         if [ "$ARCH" == "arm64" ]; then
             EFI_1="$(dirname $(which qemu-img))/../share/qemu/edk2-aarch64-code.fd"
