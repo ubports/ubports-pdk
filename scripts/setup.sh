@@ -35,7 +35,7 @@ function tryInstallSshd {
 
 function checkSsh {
     if [ "$(uname -s)" == "Linux" ]; then
-        systemctl status ssh 1&> /dev/null
+        sudo systemctl status sshd 1&>/dev/null || sudo systemctl status ssh 1&>/dev/null
         if [ "$?" != "0" ]; then
             echo "WARNING: The OpenSSH server seems to be missing or not activated, please install it using your package manager."
             while true; do
