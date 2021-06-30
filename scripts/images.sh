@@ -7,6 +7,8 @@ function initImageVars {
             QEMU_ARGS="\
                 -cpu cortex-a72 \
                 -netdev user,id=ethernet.0 \
+                -device virtio-gpu-pci,virgl=on \
+                -display sdl,gl=on \
                 -device rtl8139,netdev=ethernet.0 \
                 -device AC97 \
                 -serial mon:stdio"
@@ -15,15 +17,22 @@ function initImageVars {
             QEMU_ARGS="\
                 -cpu Haswell-v4 \
                 -netdev user,id=ethernet.0 \
+                -device virtio-gpu-pci,virgl=on \
+                -display sdl,gl=on \
                 -device rtl8139,netdev=ethernet.0 \
                 -device AC97 \
                 -serial mon:stdio"
         fi
 
         if [ "$HOST_ARCH" == "$ARCH" ]; then
-            QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on -display sdl,gl=on $QEMU_ARGS"
+            QEMU_ARGS="-display sdl,gl=on $QEMU_ARGS"
+            if [ -f /dev/kvm ]; then
+                QEMU_ARGS="-enable-kvm $QEMU_ARGS"
+            else
+                QEMU_ARGS="-machine virt $QEMU_ARGS"
+            fi
         else
-            QEMU_ARGS="-machine virt -device virtio-gpu-pci,virgl=on -display sdl,gl=on $QEMU_ARGS"
+            QEMU_ARGS="-machine virt $QEMU_ARGS"
         fi
     elif [ "$(uname -s)" == "Darwin" ]; then
         if [ "$ARCH" == "arm64" ]; then
