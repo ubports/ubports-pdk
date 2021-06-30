@@ -22,7 +22,7 @@ function warnMissingData {
 function tryInstallSshd {
     if [ "$(uname -s)" == "Linux" ]; then
         if [ -f /usr/bin/apt ]; then
-            sudo apt install openssh-client && openssh-server && \
+            sudo apt install openssh-client openssh-server && \
                 sudo systemctl enable ssh && \
                 echo "SSH enabled successfully!"
         else
@@ -35,8 +35,8 @@ function tryInstallSshd {
 
 function checkSsh {
     if [ "$(uname -s)" == "Linux" ]; then
-        systemctl status ssh 1&> /dev/null
-        if [ "$?" != "0" ]; then
+        IS_INSTALLED=$(systemctl status ssh 1&>/dev/null && echo 1 || echo 0)
+        if [ "$IS_INSTALLED" != "1" ]; then
             echo "WARNING: The OpenSSH server seems to be missing or not activated, please install it using your package manager."
             while true; do
                 read -p "Would you like to do that automatically now [y/n]? " yn
