@@ -5,6 +5,7 @@ function warnMissingData {
     while [ "$IS_VALID" == "0" ]; do
         printf "Path: "
         read NEW_DATA_ROOT
+        NEW_DATA_ROOT="$(realpath $NEW_DATA_ROOT)"
         if [ -d "$NEW_DATA_ROOT" ]; then
             IS_VALID=1
             continue;
