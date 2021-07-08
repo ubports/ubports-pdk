@@ -1,9 +1,10 @@
 function initSettingsVars {
-	if [ "$(uname -s)" == "Darwin" ]; then
-	    SETTINGS_FILE="$DATA_ROOT/sshd/settings.dmg"
-	elif [ "$(uname -s)" == "Linux" ]; then
-	    SETTINGS_FILE="$DATA_ROOT/sshd/settings.raw"
-	fi
+    if [ "$(uname -s)" == "Darwin" ]; then
+        SETTINGS_FILE="$DATA_ROOT/sshd/settings.dmg"
+    elif [ "$(uname -s)" == "Linux" ]; then
+        SETTINGS_FILE="$DATA_ROOT/sshd/settings.raw"
+        IS_MTOOLS_INSTALLED=$(which mtools >/dev/null && echo 1 || echo 0)
+    fi
 }
 
 function generateSettingsImage {
@@ -31,12 +32,20 @@ function copySettingsIntoImage {
         cp "$DATA_ROOT/sshd/id_rsa.pub" "/Volumes/PDKSETTINGS/id_rsa.pub"
         hdiutil detach "/Volumes/PDKSETTINGS"
     elif [ "$(uname -s)" == "Linux" ]; then
-        MNT_DIR=$(mktemp -d)
-        sudo mount "$SETTINGS_FILE" "$MNT_DIR"
-        sudo cp "$CONFIG_ROOT/config.sh" "$MNT_DIR/config.sh"
-        sudo cp "$DATA_ROOT/sshd/id_rsa" "$MNT_DIR/id_rsa"
-        sudo cp "$DATA_ROOT/sshd/id_rsa.pub" "$MNT_DIR/id_rsa.pub"
-        sudo umount "$MNT_DIR"
-        rm -rf "$MNT_DIR"
+        if [ "$IS_MTOOLS_INSTALLED" == "1" ]; then
+            echo "Using mtools to create a settings image"
+            mcopy -i "$SETTINGS_FILE" "$CONFIG_ROOT/config.sh" ::
+            mcopy -i "$SETTINGS_FILE" "$DATA_ROOT/sshd/id_rsa" ::
+            mcopy -i "$SETTINGS_FILE" "$DATA_ROOT/sshd/id_rsa.pub" ::
+        else
+            echo "Using sudo-based settings image generation..."
+            MNT_DIR=$(mktemp -d)
+            sudo mount "$SETTINGS_FILE" "$MNT_DIR"
+            sudo cp "$CONFIG_ROOT/config.sh" "$MNT_DIR/config.sh"
+            sudo cp "$DATA_ROOT/sshd/id_rsa" "$MNT_DIR/id_rsa"
+            sudo cp "$DATA_ROOT/sshd/id_rsa.pub" "$MNT_DIR/id_rsa.pub"
+            sudo umount "$MNT_DIR"
+            rm -rf "$MNT_DIR"
+        fi
     fi
 }
