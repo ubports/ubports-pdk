@@ -7,14 +7,211 @@ description: |
  compilers and packaging tools for making creating the platform a breeze.
 
 grade: stable
-confinement: classic
+confinement: strict
 base: core20
+
+architectures:
+  - build-on: amd64
+    run-on: amd64
+  - build-on: arm64
+    run-on: arm64
 
 apps:
   pdk:
-    command: ubuntu-touch-pdk
+    extensions: [ gnome-3-38 ]
+    command: bin/ubuntu-touch-pdk
+    command-chain: [ bin/runner ]
+    plugs:
+      - audio-playback
+      - audio-record
+      - kvm
+      - home
+      - opengl
+      - raw-usb
+      - removable-media
+      - screen-inhibit-control
+      - network
+      - network-bind
+      - network-control
+      - unity7
+      - docker
+
+layout:
+  /usr/sbin/smbd:
+    bind-file: $SNAP/usr/sbin/smbd
 
 parts:
   pdk:
     source: .
     plugin: dump
+    organize:
+      scripts: bin/scripts
+      ubuntu-touch-pdk: bin/ubuntu-touch-pdk
+    stage-packages:
+      - mtools
+      - coreutils
+      - docker.io
+  virgl:
+    source: git://anongit.freedesktop.org/virglrenderer
+    source-tag: virglrenderer-0.8.0
+    source-depth: 1
+    plugin: autotools
+    autotools-configure-parameters:
+      - --prefix=/usr
+      - --enable-gbm-allocation
+    build-packages:
+      - libgbm-dev
+      - libdrm-dev
+      - libepoxy-dev
+  qemu:
+    after: [ virgl ]
+    source: git://git.qemu.org/qemu.git
+    source-tag: v6.0.0
+    source-depth: 1
+    plugin: autotools
+    autotools-configure-parameters:
+      - --prefix=/usr
+      - --target-list=x86_64-softmmu,aarch64-softmmu,arm-softmmu
+      - --audio-drv-list=pa,sdl
+      - --enable-jemalloc
+      - --enable-libusb
+      - --enable-usb-redir
+      - --enable-sdl
+      - --enable-spice
+      - --enable-xfsctl
+    override-build: |
+      snapcraftctl build
+      snapcraftctl set-version "$(cat VERSION)"
+    build-packages:
+      - bison
+      - flex
+      - gettext
+      - libaio-dev
+      - libbluetooth-dev
+      - libbrlapi-dev
+      - libbz2-dev
+      - libcap-dev
+      - libcap-ng-dev
+      - libcurl4-gnutls-dev
+      - libgtk-3-dev
+      - libibverbs-dev
+      - libjemalloc-dev
+      - libjpeg8-dev
+      - libncurses5-dev
+      - libnuma-dev
+      - librbd-dev
+      - librdmacm-dev
+      - libsasl2-dev
+      - libsdl2-dev
+      - libsdl2-image-dev
+      - libseccomp-dev
+      - libsnappy-dev
+      - libspice-protocol-dev
+      - libspice-server-dev
+      - libusb-1.0-0-dev
+      - libusbredirparser-dev
+      - libvde-dev
+      - libvdeplug-dev
+      - libvte-2.91-dev
+      - libxen-dev
+      - liblzo2-dev
+      - libx11-dev
+      - libxml2-dev
+      - libepoxy-dev
+      - libglib2.0-dev
+      - libfdt-dev
+      - libpixman-1-dev
+      - xfslibs-dev
+      - zlib1g-dev
+      - libnfs-dev
+      - libiscsi-dev
+      - libpulse-dev
+      - ninja-build
+    stage-packages:
+      - libaio1
+      - libbluetooth3
+      - libboost-iostreams1.67.0
+      - libboost-random1.67.0
+      - libboost-thread1.67.0
+      - libbrlapi0.7
+      - libflac8
+      - libiscsi7
+      - libjemalloc2
+      - libnfs13
+      - libnuma1
+      - librados2
+      - librbd1
+      - libsdl2-2.0-0
+      - libsdl2-image-2.0-0
+      - libsnappy1v5
+      - libsndio7.0
+      - libspice-server1
+      - libusb-1.0-0
+      - libusbredirparser1
+      - libvdeplug2
+      - libxencall1
+      - libxendevicemodel1
+      - libxenevtchn1
+      - libxenforeignmemory1
+      - libxengnttab1
+      - libxenmisc4.11
+      - libxenstore3.0
+      - libxentoolcore1
+      - libxentoollog1
+      - libyajl2
+      - libxi6
+      - libxss1
+    prime:
+      # Fix execstack warnings
+      - -usr/share/qemu/s390-ccw.img
+      - -usr/share/qemu/s390-netboot.img
+      - -usr/share/qemu/openbios-ppc
+      # Remove cruft
+      - -usr/share/qemu/qemu-nsis.bmp
+  runner:
+    after: [ qemu ]
+    source: snap/local
+    plugin: nil
+    override-build: |
+      mkdir -p $SNAPCRAFT_PART_INSTALL/bin
+      cp -av runner $SNAPCRAFT_PART_INSTALL/bin/
+  smbd:
+    after: [ runner ]
+    plugin: nil
+    stage-packages:
+      - samba
+    prime:
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libdcerpc.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libdcerpc-binding.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libdcerpc-server.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libjansson.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libldb.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libndr-krb5pac.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libndr-nbt.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libndr.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libndr-standard.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libnetapi.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpopt.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpython2.7.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpytalloc-util.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libsamba-*.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libsamdb.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libsmbconf.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libsmbldap.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libtalloc.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libtevent.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libtevent-util.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libwbclient.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/samba/*
+      - usr/sbin/smbd
+  cleanup:
+    after: [ smbd ]
+    plugin: nil
+    build-snaps: [ gnome-3-38-2004 ]
+    override-prime: |
+      set -eux
+      for CRUFT in bug lintian man; do
+        rm -rf $SNAPCRAFT_PRIME/usr/share/$CRUFT
+      done
+      find $SNAPCRAFT_PRIME/usr/share/doc/ -type f -not -name 'copyright' -delete
+      find $SNAPCRAFT_PRIME/usr/share -type d -empty -delete
