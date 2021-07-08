@@ -48,6 +48,10 @@ parts:
       scripts: bin/scripts
       ubuntu-touch-pdk: bin/ubuntu-touch-pdk
     stage-packages:
+      - wget
+      - xz-utils
+      - dosfstools
+      - openssh-client
       - mtools
       - coreutils
       - docker.io
