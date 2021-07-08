@@ -25,8 +25,8 @@ function initCommonVars {
     if [ "$MEM_VM" -lt "1" ]; then
         MEM_VM=1
     fi
-    if [ "$MEM_VM" -gt "4" ]; then
-        MEM_VM=4
+    if [ "$MEM_VM" -gt "8" ]; then
+        MEM_VM=8
     fi
 
     NPROC_VM=$((NPROCS-2))
