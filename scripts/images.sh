@@ -21,9 +21,9 @@ function initImageVars {
         fi
 
         if [ "$HOST_ARCH" == "$ARCH" ]; then
-            QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on -display sdl,gl=on $QEMU_ARGS"
+            QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on -display gtk,gl=on $QEMU_ARGS"
         else
-            QEMU_ARGS="-machine virt -device virtio-gpu-pci,virgl=on -display sdl,gl=on $QEMU_ARGS"
+            QEMU_ARGS="-machine virt -device virtio-gpu-pci,virgl=on -display gtk,gl=on $QEMU_ARGS"
         fi
         QEMU_ARGS="-device virtio-keyboard-pci -device virtio-mouse-pci $QEMU_ARGS"
     elif [ "$(uname -s)" == "Darwin" ]; then
