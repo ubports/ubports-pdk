@@ -17,11 +17,11 @@ function warnMissingData {
     echo "SRC_ROOT=$NEW_DATA_ROOT/sources" >> "$CONFIG_ROOT/config.sh"
     echo "USER=$USER" >> "$CONFIG_ROOT/config.sh"
     if [ "$(uname -s)" == "Linux" ]; then
-	    read -p "Choose display output option [ 0 - sdl, 1 - gtk (recommended for amd gpu) ] : " choice
+	    read -p "Choose display output option [ 0 - gtk (default), 1 - sdl ] : " choice
 	    if [ "$choice" == "1" ]; then
-		    echo "DISPLAY_ARG=gtk" >> "$CONFIG_ROOT/config.sh"
-	    else
 		    echo "DISPLAY_ARG=sdl" >> "$CONFIG_ROOT/config.sh"
+	    else
+		    echo "DISPLAY_ARG=gtk" >> "$CONFIG_ROOT/config.sh"
 	    fi
     fi
     source "$CONFIG_ROOT/config.sh"
