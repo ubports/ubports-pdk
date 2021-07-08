@@ -34,7 +34,8 @@ function tryInstallSshd {
 }
 
 function checkSsh {
-    if [ "$(uname -s)" == "Linux" ]; then
+    # Only required on non-Snap Linux
+    if [ "$(uname -s)" == "Linux" ] && [ "$SNAP_USER_COMMON" == "" ]; then
         IS_INSTALLED=$(systemctl status ssh 1&>/dev/null && echo 1 || echo 0)
         if [ "$IS_INSTALLED" != "1" ]; then
             echo "WARNING: The OpenSSH server seems to be missing or not activated, please install it using your package manager."
