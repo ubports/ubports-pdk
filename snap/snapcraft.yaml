@@ -18,8 +18,11 @@ architectures:
 
 apps:
   pdk:
-    extensions: [ gnome-3-38 ]
-    command: bin/ubuntu-touch-pdk
+    environment:
+      LD_LIBRARY_PATH: ${SNAP}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}:${SNAP}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/ceph:${SNAP}/lib/${SNAPCRAFT_ARCH_TRIPLET}:${SNAP}/usr/lib
+      GDK_BACKEND: x11
+      GDK_SCALE: 1
+    command: bin/desktop-launch ubuntu-touch-pdk
     command-chain: [ bin/runner ]
     plugs:
       - audio-playback
@@ -35,6 +38,7 @@ apps:
       - network-control
       - unity7
       - docker
+      - x11
 
 layout:
   /usr/sbin/smbd:
@@ -54,7 +58,6 @@ parts:
       - openssh-client
       - mtools
       - coreutils
-      - docker.io
   virgl:
     source: git://anongit.freedesktop.org/virglrenderer
     source-tag: virglrenderer-0.8.0
@@ -67,6 +70,15 @@ parts:
       - libgbm-dev
       - libdrm-dev
       - libepoxy-dev
+    stage-packages:
+      - libdrm2
+      - libepoxy0
+      - libgbm1
+      - libwayland-server0
+      - libx11-6
+      - libxau6
+      - libxcb1
+      - libxdmcp6
   qemu:
     after: [ virgl ]
     source: git://git.qemu.org/qemu.git
@@ -83,9 +95,7 @@ parts:
       - --enable-sdl
       - --enable-spice
       - --enable-xfsctl
-    override-build: |
-      snapcraftctl build
-      snapcraftctl set-version "$(cat VERSION)"
+      - --enable-virtiofsd
     build-packages:
       - bison
       - flex
@@ -165,6 +175,49 @@ parts:
       - libyajl2
       - libxi6
       - libxss1
+      - libasn1-8-heimdal
+      - libatk-bridge2.0-0
+      - libatk1.0-0
+      - libatspi2.0-0
+      - libbrotli1
+      - libcairo-gobject2
+      - libcairo2
+      - libcurl3-gnutls
+      - libdatrie1
+      - libdrm2
+      - libepoxy0
+      - libfdt1
+      - libfontconfig1
+      - libfreetype6
+      - libfribidi0
+      - libgbm1
+      - libgdk-pixbuf2.0-0
+      - libgraphite2-3
+      - libgssapi3-heimdal
+      - libgtk-3-0
+      - libharfbuzz0b
+      - libhcrypto4-heimdal
+      - libheimbase1-heimdal
+      - libheimntlm0-heimdal
+      - libhx509-5-heimdal
+      - libicu66
+      - libkrb5-26-heimdal
+      - libldap-2.4-2
+      - libnghttp2-14
+      - libpango-1.0-0
+      - libpangocairo-1.0-0
+      - libpangoft2-1.0-0
+      - libroken18-heimdal
+      - librtmp1
+      - libssh-4
+      - libthai0
+      - libvte-2.91-0
+      - libwayland-server0
+      - libwind0-heimdal
+      - libxcb-render0
+      - libxcb-shm0
+      - libxcomposite1
+      - libxdamage1
     prime:
       # Fix execstack warnings
       - -usr/share/qemu/s390-ccw.img
@@ -208,14 +261,55 @@ parts:
       - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libwbclient.so*
       - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/samba/*
       - usr/sbin/smbd
-  cleanup:
-    after: [ smbd ]
+  desktop-gtk3:
+    build-packages:
+      - build-essential
+      - libgtk-3-dev
+    make-parameters:
+      - FLAVOR=gtk3
+    plugin: make
+    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+    source-subdir: gtk
+    stage-packages:
+      - libxkbcommon0
+      - ttf-ubuntu-font-family
+      - dmz-cursor-theme
+      - light-themes
+      - adwaita-icon-theme
+      - gnome-themes-standard
+      - shared-mime-info
+      - libgtk-3-0
+      - libgdk-pixbuf2.0-0
+      - libglib2.0-bin
+      - libgtk-3-bin
+      - unity-gtk3-module
+      - libappindicator3-1
+      - locales-all
+      - xdg-user-dirs
+      - ibus-gtk3
+      - libibus-1.0-5
+      - fcitx-frontend-gtk3
+  mesa:
     plugin: nil
-    build-snaps: [ gnome-3-38-2004 ]
-    override-prime: |
-      set -eux
-      for CRUFT in bug lintian man; do
-        rm -rf $SNAPCRAFT_PRIME/usr/share/$CRUFT
-      done
-      find $SNAPCRAFT_PRIME/usr/share/doc/ -type f -not -name 'copyright' -delete
-      find $SNAPCRAFT_PRIME/usr/share -type d -empty -delete
+    stage-packages:
+      - libegl1
+      - libgl1
+      - libgl1-mesa-dri
+      - libglx-mesa0
+    build-attributes:
+      - no-patchelf
+    prime:
+      - -lib/udev
+      - -usr/doc
+      - -usr/doc-base
+      - -usr/share/applications
+      - -usr/share/apport
+      - -usr/share/bug
+      - -usr/share/doc
+      - -usr/share/doc-base
+      - -usr/share/icons
+      - -usr/share/libdrm
+      - -usr/share/libwacom
+      - -usr/share/lintian
+      - -usr/share/man
+      - -usr/share/pkgconfig
