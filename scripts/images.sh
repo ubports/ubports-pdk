@@ -1,29 +1,59 @@
 function initImageVars {
     if [ "$(uname -s)" == "Linux" ]; then
-        if [ "$ARCH" == "arm64" ]; then
-            EFI_1="/snap/qemu-ut-pdk/current/usr/share/qemu/edk2-aarch64-code.fd"
-            EFI_2="/snap/qemu-ut-pdk/current/usr/share/qemu/edk2-arm-vars.fd"
-            QEMU=qemu-ut-pdk.arm64
-            QEMU_ARGS="\
-                -cpu cortex-a72 \
-                -netdev user,id=ethernet.0 \
-                -device rtl8139,netdev=ethernet.0 \
-                -device AC97 \
-                -serial mon:stdio"
-        else
-            QEMU=qemu-ut-pdk.qemu-virgil
-            QEMU_ARGS="\
-                -cpu Haswell-v4 \
-                -netdev user,id=ethernet.0 \
-                -device rtl8139,netdev=ethernet.0 \
-                -device AC97 \
-                -serial mon:stdio"
-        fi
+        if [ "$SNAP" == "" ]; then
+            # Non-Snap variables
+            if [ "$ARCH" == "arm64" ]; then
+                EFI_1="/snap/qemu-ut-pdk/current/usr/share/qemu/edk2-aarch64-code.fd"
+                EFI_2="/snap/qemu-ut-pdk/current/usr/share/qemu/edk2-arm-vars.fd"
+                QEMU=qemu-ut-pdk.arm64
+                QEMU_ARGS="\
+                    -cpu cortex-a72 \
+                    -netdev user,id=ethernet.0 \
+                    -device rtl8139,netdev=ethernet.0 \
+                    -device AC97 \
+                    -serial mon:stdio"
+            else
+                QEMU=qemu-ut-pdk.qemu-virgil
+                QEMU_ARGS="\
+                    -cpu Haswell-v4 \
+                    -netdev user,id=ethernet.0 \
+                    -device rtl8139,netdev=ethernet.0 \
+                    -device AC97 \
+                    -serial mon:stdio"
+            fi
 
-        if [ "$HOST_ARCH" == "$ARCH" ]; then
-            QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on -display gtk,gl=on $QEMU_ARGS"
+            if [ "$HOST_ARCH" == "$ARCH" ]; then
+                QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on -display gtk,gl=on $QEMU_ARGS"
+            else
+                QEMU_ARGS="-machine virt -device virtio-gpu-pci,virgl=on -display gtk,gl=on $QEMU_ARGS"
+            fi
         else
-            QEMU_ARGS="-machine virt -device virtio-gpu-pci,virgl=on -display gtk,gl=on $QEMU_ARGS"
+            # Snap variables
+            if [ "$ARCH" == "arm64" ]; then
+                EFI_1="$SNAP/usr/share/qemu/edk2-aarch64-code.fd"
+                EFI_2="$SNAP/usr/share/qemu/edk2-arm-vars.fd"
+                QEMU=qemu-system-aarch64
+                QEMU_ARGS="\
+                    -cpu cortex-a72 \
+                    -netdev user,id=ethernet.0 \
+                    -device rtl8139,netdev=ethernet.0 \
+                    -device AC97 \
+                    -serial mon:stdio"
+            else
+                QEMU=qemu-system-x86_64
+                QEMU_ARGS="\
+                    -cpu Haswell-v4 \
+                    -netdev user,id=ethernet.0 \
+                    -device rtl8139,netdev=ethernet.0 \
+                    -device AC97 \
+                    -serial mon:stdio"
+            fi
+
+            if [ "$HOST_ARCH" == "$ARCH" ]; then
+                QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on -display gtk,gl=on $QEMU_ARGS"
+            else
+                QEMU_ARGS="-machine virt -device virtio-gpu-pci,virgl=on -display gtk,gl=on $QEMU_ARGS"
+            fi
         fi
         QEMU_ARGS="-device virtio-keyboard-pci -device virtio-mouse-pci $QEMU_ARGS"
     elif [ "$(uname -s)" == "Darwin" ]; then
@@ -80,7 +110,7 @@ function pullLatestImage {
     createCaches
     wget -P "$IMG_CACHE/$NAME" --continue "$PULL_URL"
     echo "Unpacking the archive"
-    unxz "$IMG_CACHE/$NAME/$PULL_IMG_NAME"
+    unxz -t "$IMG_CACHE/$NAME/$PULL_IMG_NAME"
     mv "$IMG_CACHE/$NAME/$IMG_NAME" "$IMG_CACHE/$NAME/hdd.raw"
     echo "ARCH=$ARCH" > "$IMG_CACHE/$NAME/info.sh"
 }
