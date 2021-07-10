@@ -108,11 +108,22 @@ function createImage {
 
 function pullLatestImage {
     createCaches
+    if [ -e "$IMG_CACHE/$NAME/$IMG_NAME" ]; then
+        rm -f "$IMG_CACHE/$NAME/$IMG_NAME"
+    fi
+    if [ -e "$IMG_CACHE/$NAME/$PULL_IMG_NAME" ]; then
+        rm -f "$IMG_CACHE/$NAME/$PULL_IMG_NAME"
+    fi
     wget -P "$IMG_CACHE/$NAME" --continue "$PULL_URL"
     echo "Unpacking the archive"
-    unxz -t "$IMG_CACHE/$NAME/$PULL_IMG_NAME"
+
+    set +e
+    unxz "$IMG_CACHE/$NAME/$PULL_IMG_NAME"
+    set -e
+
     mv "$IMG_CACHE/$NAME/$IMG_NAME" "$IMG_CACHE/$NAME/hdd.raw"
     echo "ARCH=$ARCH" > "$IMG_CACHE/$NAME/info.sh"
+    echo "Pull successful!"
 }
 
 function runImage {
