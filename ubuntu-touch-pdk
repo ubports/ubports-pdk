@@ -178,6 +178,7 @@ if [ "$RUN" == "yes" ]; then
     echo ""
     echo "Name of the environment: $NAME"
     echo ""
+    startVirtiofsd
     runImage
 fi
 

@@ -49,3 +49,27 @@ function copySettingsIntoImage {
         fi
     fi
 }
+
+function startVirtiofsd {
+    # Return immediately in non-Snap environments
+    if [ "$SNAP" == "" ]; then
+        return
+    fi
+    VIRTIOFS_SOCK="$SNAP_USER_DATA/$NAME-vhost-fs.sock"
+    $SNAP/usr/libexec/virtiofsd \
+        --socket-path="$VIRTIOFS_SOCK" \
+        -o source="$SRC_ROOT" \
+        -o allow_root \
+        -o allow_direct_io \
+        -o xattr \
+        -o writeback \
+        -o readdirplus \
+        -o posix_lock \
+        -o flock \
+        -f &
+
+    while [ ! -e "$VIRTIOFS_SOCK" ]; do
+        sleep 0.1
+    done
+    VIRTIOFS_ACTIVE=1
+}

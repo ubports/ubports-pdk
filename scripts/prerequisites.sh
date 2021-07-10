@@ -10,7 +10,7 @@ if [ "$HOST_OS" == "Darwin" ]; then
     brew install wget
 elif [ "$HOST_OS" == "Linux" ]; then
     # Only necessary in non-Snap environments
-    if [ "$SNAP_USER_COMMON" == "" ]; then
+    if [ "$SNAP" == "" ]; then
         sudo snap install --edge qemu-ut-pdk
         sudo snap connect qemu-ut-pdk:kvm
         if [ "$(id)" != *kvm* ]; then

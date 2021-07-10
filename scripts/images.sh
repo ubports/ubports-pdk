@@ -138,7 +138,14 @@ function runImage {
         EFI_ARGS="$EFI_ARGS -drive if=pflash,format=raw,file=$IMG_CACHE/$NAME/efi_2.fd,discard=on"
     fi
 
-    $QEMU $QEMU_ARGS $QEMU_MEM_ARGS $EFI_ARGS \
+    if [ "$VIRTIOFS_ACTIVE" == "1" ]; then
+        VIRTIOFS_ARGS="\
+            -chardev socket,id=char0,path=$VIRTIOFS_SOCK \
+            -device vhost-user-fs-pci,chardev=char0,tag=myfs \
+            -object memory-backend-memfd,id=mem,size=${MEM_VM}G,share=on \
+            -numa node,memdev=mem"
+    fi
+    $QEMU $QEMU_ARGS $QEMU_MEM_ARGS $EFI_ARGS $VIRTIOFS_ARGS \
         -smp "$NPROC_VM" \
         -drive "if=virtio,format=raw,file=$IMG_CACHE/$NAME/hdd.raw,discard=on" \
         -drive "if=virtio,format=raw,file=$SETTINGS_FILE,readonly=on"
