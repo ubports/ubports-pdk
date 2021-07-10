@@ -12,7 +12,8 @@ A way to help the development of Ubuntu Touch
 
 ## Installation:
 
-- macOS & Linux: Clone this repository or download a copy of it from GitHub
+- Linux with Snap: `sudo snap install --edge ubports-pdk`
+- macOS & other Linux: Clone this repository or download a copy of it from GitHub
 
 
 ## Usage:

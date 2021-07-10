@@ -37,7 +37,6 @@ apps:
       - network-bind
       - network-control
       - unity7
-      - docker
       - x11
 
 layout:

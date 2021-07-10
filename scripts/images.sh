@@ -93,19 +93,6 @@ function initImageVars {
     fi
 }
 
-function createImage {
-    if [ "$(uname -s)" != "Linux" ]; then
-        echo "Creating images not implemented on $(uname -s), skipping."
-        return 0
-    fi
-
-    createCaches
-
-    $SCRIPTPATH/deps/rootfs-builder-debos/debos-docker \
-        -t architecture:"\"$ARCH\"" \
-        -m 5G $SCRIPTPATH/deps/rootfs-builder-debos/focal-pdk.yaml
-}
-
 function pullLatestImage {
     createCaches
     if [ -e "$IMG_CACHE/$NAME/$IMG_NAME" ]; then
