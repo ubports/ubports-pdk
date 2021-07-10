@@ -169,8 +169,6 @@ fi
 # Decide on pulling or creating an image
 if [ "$PULL_IMG" == "yes" ]; then
     pullLatestImage
-elif [ "$CREATE" == "yes" ]; then
-    createImage
 fi
 
 # Aaand run it!
