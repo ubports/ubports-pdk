@@ -1,5 +1,5 @@
 name: ubports-pdk
-version: 'latest'
+adopt-info: pdk
 summary: Platform Development Kit for Ubuntu Touch by UBports
 description: |
  A development environment for creating the Ubuntu Touch platform.
@@ -48,6 +48,11 @@ parts:
   pdk:
     source: .
     plugin: dump
+    override-pull: |
+      snapcraftctl pull
+      source ./scripts/vars.sh
+      snapcraftctl set-version "$VERSION"
+      snapcraftctl set-grade "stable"
     organize:
       scripts: bin/scripts
       ubuntu-touch-pdk: bin/ubuntu-touch-pdk
