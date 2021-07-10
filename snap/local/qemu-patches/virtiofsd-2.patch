@@ -1,0 +1,42 @@
+From b16ce522c0096039fa07a9053ba5e30ea0ed4bbf Mon Sep 17 00:00:00 2001
+From: Alfred Neumayer <dev.beidl@gmail.com>
+Date: Sat, 10 Jul 2021 03:15:46 +0200
+Subject: [PATCH 1/2] virtiofsd: Avoid changing creds when creating files
+
+When run in unprivileged mode the daemon is incapable of switching
+credentials, so just avoid doing that in that mode altogether.
+---
+ tools/virtiofsd/passthrough_ll.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/tools/virtiofsd/passthrough_ll.c b/tools/virtiofsd/passthrough_ll.c
+index 98577813ac..437f6409cc 100644
+--- a/tools/virtiofsd/passthrough_ll.c
++++ b/tools/virtiofsd/passthrough_ll.c
+@@ -1140,6 +1140,11 @@ static int lo_change_cred(fuse_req_t req, struct lo_cred *old)
+ {
+     int res;
+ 
++    // Keep permissions as host user in case of unprivileged mode
++    if (geteuid() != 0) {
++        return 0;
++    }
++
+     old->euid = geteuid();
+     old->egid = getegid();
+ 
+@@ -1164,6 +1169,11 @@ static void lo_restore_cred(struct lo_cred *old)
+ {
+     int res;
+ 
++    // No need to restore creds in unprivileged mode
++    if (geteuid() != 0) {
++        return;
++    }
++
+     res = syscall(OURSYS_setresuid, -1, old->euid, -1);
+     if (res == -1) {
+         fuse_log(FUSE_LOG_ERR, "seteuid(%u): %m\n", old->euid);
+-- 
+2.25.1
+

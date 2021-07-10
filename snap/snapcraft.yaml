@@ -87,7 +87,7 @@ parts:
     plugin: autotools
     autotools-configure-parameters:
       - --prefix=/usr
-      - --target-list=x86_64-softmmu,aarch64-softmmu,arm-softmmu
+      - --target-list=x86_64-softmmu,aarch64-softmmu
       - --audio-drv-list=pa,sdl
       - --enable-jemalloc
       - --enable-libusb
@@ -96,6 +96,11 @@ parts:
       - --enable-spice
       - --enable-xfsctl
       - --enable-virtiofsd
+    override-build: |
+      patch -p1 < $SNAPCRAFT_PROJECT_DIR/snap/local/qemu-patches/virtiofsd-1.patch
+      patch -p1 < $SNAPCRAFT_PROJECT_DIR/snap/local/qemu-patches/virtiofsd-2.patch
+      patch -p1 < $SNAPCRAFT_PROJECT_DIR/snap/local/qemu-patches/virtiofsd-3.patch
+      snapcraftctl build
     build-packages:
       - bison
       - flex
