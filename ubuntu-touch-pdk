@@ -24,7 +24,6 @@ SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 PULL_IMG=no
 SETUP=no
-CREATE=no
 CLEARCACHE=no
 LIST=no
 RUN=no
@@ -43,7 +42,6 @@ function printHelp {
     echo "Commands:"
     printf "\tsetup: Host OS preparations (recommended for first-time use)\n"
     printf "\tclear: Clean up all images\n"
-    printf "\tcreate: Generate a bootable image locally\n"
     printf "\tpull: Download pre-generated image\n"
     printf "\trun: Run desired image\n"
     printf "\tlist: Show list of cached images\n"
@@ -55,16 +53,10 @@ while [[ $# -gt 0 ]]; do
     case $arg in
         pull)
             PULL_IMG=yes
-            CREATE=no
             shift
         ;;
         setup)
             SETUP=yes
-            shift
-        ;;
-        create)
-            CREATE=yes
-            PULL_IMG=no
             shift
         ;;
         clean)
@@ -136,7 +128,6 @@ printf "\tSetup? $SETUP\n"
 printf "\tClear cache? $CLEARCACHE\n"
 printf "\tList? $LIST\n"
 printf "\tPull image? $PULL_IMG\n"
-printf "\tCreate custom image? $CREATE\n"
 printf "\tRun an image? $RUN\n"
 
 source $SCRIPTPATH/scripts/caches.sh
