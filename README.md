@@ -18,6 +18,8 @@ A way to help the development of Ubuntu Touch
 
 ## Usage:
 
+For the snap version, use the command `ubports-pdk.pdk` instead of `ubuntu-touch-pdk`.
+
 - `ubuntu-touch-pdk setup`: Sets up the environment and mounting capabilities for your development needs
 - `ubuntu-touch-pdk pull`: Download the freshest development image (based on focal)
 - `ubuntu-touch-pdk run`: Run the development VM instance
