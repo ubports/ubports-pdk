@@ -8,7 +8,7 @@ function initImageVars {
                 QEMU=qemu-ut-pdk.arm64
                 QEMU_ARGS="\
                     -cpu cortex-a72 \
-                    -netdev user,id=ethernet.0 \
+                    -netdev user,id=ethernet.0,hostfwd=tcp:127.0.0.1:5555-:5555 \
                     -device rtl8139,netdev=ethernet.0 \
                     -device AC97 \
                     -serial mon:stdio"
@@ -16,7 +16,7 @@ function initImageVars {
                 QEMU=qemu-ut-pdk.qemu-virgil
                 QEMU_ARGS="\
                     -cpu Haswell-v4 \
-                    -netdev user,id=ethernet.0 \
+                    -netdev user,id=ethernet.0,hostfwd=tcp:127.0.0.1:5555-:5555 \
                     -device rtl8139,netdev=ethernet.0 \
                     -device AC97 \
                     -serial mon:stdio"
@@ -35,7 +35,7 @@ function initImageVars {
                 QEMU=qemu-system-aarch64
                 QEMU_ARGS="\
                     -cpu cortex-a72 \
-                    -netdev user,id=ethernet.0 \
+                    -netdev user,id=ethernet.0,hostfwd=tcp:127.0.0.1:5555-:5555 \
                     -device rtl8139,netdev=ethernet.0 \
                     -device AC97 \
                     -serial mon:stdio"
@@ -43,7 +43,7 @@ function initImageVars {
                 QEMU=qemu-system-x86_64
                 QEMU_ARGS="\
                     -cpu Haswell-v4 \
-                    -netdev user,id=ethernet.0 \
+                    -netdev user,id=ethernet.0,hostfwd=tcp:127.0.0.1:5555-:5555 \
                     -device rtl8139,netdev=ethernet.0 \
                     -device AC97 \
                     -serial mon:stdio"
@@ -69,7 +69,7 @@ function initImageVars {
                 -device virtio-net-pci,netdev=net \
                 -device virtio-mouse-pci \
                 -display cocoa,gl=es \
-                -netdev user,id=net,ipv6=off \
+                -netdev user,id=net,ipv6=off,hostfwd=tcp:127.0.0.1:5555-:5555 \
                 -serial mon:stdio"
         else
             QEMU=qemu-system-x86_64
@@ -81,7 +81,7 @@ function initImageVars {
                 -device virtio-net-pci,netdev=net \
                 -device virtio-mouse-pci \
                 -display cocoa,gl=es \
-                -netdev user,id=net,ipv6=off \
+                -netdev user,id=net,ipv6=off,hostfwd=tcp:127.0.0.1:5555-:5555 \
                 -serial mon:stdio"
         fi
 
