@@ -21,7 +21,7 @@ to build, install and test system components.
 
 On Linux, make sure that your user account is in the `kvm` group:
 - Ubuntu 18.04 and earlier:
-  - `sudo apt install qemu-kvm`
+  - `sudo groupadd kvm`
   - `sudo usermod -aG kvm $USER`
 - Ubuntu 20.04 and up:
   - `sudo usermod -aG kvm $USER`
