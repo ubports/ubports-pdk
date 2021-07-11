@@ -1,6 +1,7 @@
 function warnMissingData {
     IS_VALID=0
-    echo "Please enter the directory path you want to set up"
+    echo "Please create and enter the directory path you want to set up."
+    echo "This directory will contain your VM images and source code."
 
     while [ "$IS_VALID" == "0" ]; do
         printf "Path: "
