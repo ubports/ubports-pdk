@@ -1,7 +1,8 @@
 # Platform Development Kit
 
-A way to help the development of Ubuntu Touch
-
+A way to help the development of Ubuntu Touch. Runs an Ubuntu Touch emulator that
+has little pre-installed, yet (no indicators or no core apps so far). It allows you
+to build, install and test system components.
 
 ## Goals:
 
