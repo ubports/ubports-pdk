@@ -34,8 +34,10 @@ For the snap version, use the command `ubports-pdk.pdk` instead of `ubuntu-touch
 - `ubuntu-touch-pdk pull`: Download the freshest development image (based on focal)
 - `ubuntu-touch-pdk run`: Run the development VM instance
 
-For more options, please run the command with the `-h` flag.
+Changes within a VM are persistent until you run the `pull` command again. You can have separate VMs
+by adding `--name=my_custom_vm` to the `pull` and `run` commands.
 
+For more options, please run the command with the `-h` flag.
 
 ## Tutorial: Fetching package sources
 
