@@ -18,6 +18,13 @@ A way to help the development of Ubuntu Touch
   - `sudo snap connect ubports-pdk:network-control`
 - macOS & other Linux: Clone this repository or download a copy of it from GitHub
 
+On Linux, make sure that your user account is in the `kvm` group:
+- Ubuntu 18.04 and earlier:
+  - `sudo apt install qemu-kvm`
+  - `sudo usermod -aG kvm $USER`
+- Ubuntu 20.04 and up:
+  - `sudo usermod -aG kvm $USER`
+
 ## Usage:
 
 For the snap version, use the command `ubports-pdk.pdk` instead of `ubuntu-touch-pdk`.
