@@ -12,9 +12,11 @@ A way to help the development of Ubuntu Touch
 
 ## Installation:
 
-- Linux with Snap: `sudo snap install --edge ubports-pdk`
+- Linux with Snap:
+  - `sudo snap install --edge ubports-pdk`
+  - `sudo snap connect ubports-pdk:kvm`
+  - `sudo snap connect ubports-pdk:network-control`
 - macOS & other Linux: Clone this repository or download a copy of it from GitHub
-
 
 ## Usage:
 
