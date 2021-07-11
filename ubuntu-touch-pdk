@@ -59,7 +59,7 @@ while [[ $# -gt 0 ]]; do
             SETUP=yes
             shift
         ;;
-        clean)
+        clear)
             CLEARCACHE=yes
             shift
         ;;
