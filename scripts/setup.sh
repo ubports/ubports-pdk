@@ -1,3 +1,36 @@
+function warnMissingPlugs {
+    # Only run in Snap environments
+    if [ "$SNAP" == "" ]; then
+        return
+    fi
+
+    IS_KVM_CONNECTED=$(snapctl is-connected kvm && echo 1 || echo 0)
+    IS_NETWORK_CONTROL_CONNECTED=$(snapctl is-connected network-control && echo 1 || echo 0)
+
+    if [ "$IS_KVM_CONNECTED" != "1" ]; then
+        echo "KVM use is not allowed, please run 'sudo snap connect ubports-pdk:kvm' and try again."
+        CAUSE_FAIL=1
+    fi
+    if [ "$IS_NETWORK_CONTROL_CONNECTED" != "1" ]; then
+        echo "Network control is not allowed, please run 'sudo snap connect ubports-pdk:network-control' and try again."
+        CAUSE_FAIL=1
+    fi
+
+    # Heck, throw a group check in there too
+    if getent group kvm | grep -q "\b$USER\b"; then
+        echo "KVM group all set up, good."
+    else
+        echo "Make sure your user is in the 'kvm' group. To fix this run the following commands:"
+        echo "sudo groupadd kvm"
+        echo "sudo usermod -aG kvm $USER"
+        CAUSE_FAIL=1
+    fi
+
+    if [ "$CAUSE_FAIL" != "" ]; then
+        exit 1
+    fi
+}
+
 function warnMissingData {
     IS_VALID=0
     echo "Please create and enter the directory path you want to set up."
@@ -13,6 +46,17 @@ function warnMissingData {
         fi
         echo "Please make sure the directory path is valid and exists"
     done
+
+    # Check if this is on removable media and warn the user (Snap only)
+    if [ "$SNAP" != "" ]; then
+        if echo "$NEW_DATA_ROOT" | grep -q "^/media/"; then
+            IS_REMOVABLE_CONNECTED=$(snapctl is-connected removable-media && echo 1 || echo 0)
+            if [ "$IS_REMOVABLE_CONNECTED" != "1" ]; then
+                echo "Removable media is not allowed, please run 'sudo snap connect ubports-pdk:removable-media' and try again"
+                exit 1
+            fi
+        fi
+    fi
 
     echo "DATA_ROOT=$NEW_DATA_ROOT" > "$CONFIG_ROOT/config.sh"
     echo "SRC_ROOT=$NEW_DATA_ROOT/sources" >> "$CONFIG_ROOT/config.sh"
@@ -67,33 +111,39 @@ function checkSsh {
 
 function setup {
     bash $SCRIPTPATH/scripts/prerequisites.sh
+    warnMissingPlugs
     warnMissingData
 
     if [ ! -d "$DATA_ROOT/sources" ]; then
         mkdir -p "$DATA_ROOT/sources"
     fi
-    if [ ! -d "$DATA_ROOT/sshd" ]; then
-        mkdir -p "$DATA_ROOT/sshd"
-    fi
-    if [ -f "$DATA_ROOT/sshd/id_rsa" ]; then
-        rm "$DATA_ROOT/sshd/id_rsa"
-    fi
-    if [ -f "$DATA_ROOT/sshd/id_rsa.pub" ]; then
-        rm "$DATA_ROOT/sshd/id_rsa.pub"
-    fi
 
-    checkSsh
-
-    ssh-keygen -q -t rsa -N '' -f "$DATA_ROOT/sshd/id_rsa"
-    PUBKEY_CONTENTS=$(cat "$DATA_ROOT/sshd/id_rsa.pub")
-    if grep -q "^$PUBKEY_CONTENTS" "$HOME/.ssh/authorized_keys"; then
-        echo "Public key contents already registered, continuing"
-    else
-        if [ ! -d "$HOME/.ssh" ]; then
-            mkdir "$HOME/.ssh"
-            chmod 700 "$HOME/.ssh"
+    # Snap is done here, just needs ta check inside ya sshd settings
+    # (on other platforms)
+    if [ "$SNAP" == "" ]; then
+        if [ ! -d "$DATA_ROOT/sshd" ]; then
+            mkdir -p "$DATA_ROOT/sshd"
         fi
-        echo "Inserting ssh key into authorized keys list"
-        echo "$PUBKEY_CONTENTS" >> $HOME/.ssh/authorized_keys
+        if [ -f "$DATA_ROOT/sshd/id_rsa" ]; then
+            rm "$DATA_ROOT/sshd/id_rsa"
+        fi
+        if [ -f "$DATA_ROOT/sshd/id_rsa.pub" ]; then
+            rm "$DATA_ROOT/sshd/id_rsa.pub"
+        fi
+
+        checkSsh
+
+        ssh-keygen -q -t rsa -N '' -f "$DATA_ROOT/sshd/id_rsa"
+        PUBKEY_CONTENTS=$(cat "$DATA_ROOT/sshd/id_rsa.pub")
+        if grep -q "^$PUBKEY_CONTENTS" "$HOME/.ssh/authorized_keys"; then
+            echo "Public key contents already registered, continuing"
+        else
+            if [ ! -d "$HOME/.ssh" ]; then
+                mkdir "$HOME/.ssh"
+                chmod 700 "$HOME/.ssh"
+            fi
+            echo "Inserting ssh key into authorized keys list"
+            echo "$PUBKEY_CONTENTS" >> $HOME/.ssh/authorized_keys
+        fi
     fi
 }
