@@ -114,16 +114,6 @@ function pullLatestImage {
 }
 
 function runImage {
-    if [ ! -d "$IMG_CACHE/$NAME" ]; then
-        echo "Cache directory for image '$NAME' doesn't exist."
-        return 1
-    fi
-    if [ ! -f "$IMG_CACHE/$NAME/hdd.raw" ]; then
-        echo "Hard disk for image '$NAME' doesn't exist."
-        echo "Consider pulling or creating an image yourself."
-        return 1
-    fi
-
     source "$IMG_CACHE/$NAME/info.sh"
 
     EFI_ARGS=""

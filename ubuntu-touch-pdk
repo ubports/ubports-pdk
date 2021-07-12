@@ -167,6 +167,16 @@ if [ "$RUN" == "yes" ]; then
     echo ""
     echo "Name of the environment: $NAME"
     echo ""
+    if [ ! -d "$IMG_CACHE/$NAME" ]; then
+        echo "Cache directory for image '$NAME' doesn't exist."
+        echo "Consider pulling or creating an image yourself."
+        exit 1
+    fi
+    if [ ! -f "$IMG_CACHE/$NAME/hdd.raw" ]; then
+        echo "Hard disk for image '$NAME' doesn't exist."
+        echo "Consider pulling or creating an image yourself."
+        exit 1
+    fi
     startVirtiofsd
     runImage
 fi
