@@ -8,6 +8,7 @@ echo "Installing prerequisites"
 if [ "$HOST_OS" == "Darwin" ]; then
     brew install knazarov/qemu-virgl/qemu-virgl
     brew install wget
+    brew install coreutils
 elif [ "$HOST_OS" == "Linux" ]; then
     # Only necessary in non-Snap environments
     if [ "$SNAP" == "" ]; then
