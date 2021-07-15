@@ -32,6 +32,11 @@ function copySettingsIntoImage {
         cp "$DATA_ROOT/sshd/id_rsa.pub" "/Volumes/PDKSETTINGS/id_rsa.pub"
         hdiutil detach "/Volumes/PDKSETTINGS"
     elif [ "$(uname -s)" == "Linux" ]; then
+        # Snap: No contents required right now
+        if [ "$SNAP" != "" ]; then
+            return
+        fi
+
         if [ "$IS_MTOOLS_INSTALLED" == "1" ]; then
             echo "Using mtools to create a settings image"
             mcopy -i "$SETTINGS_FILE" "$CONFIG_ROOT/config.sh" ::

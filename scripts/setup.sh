@@ -118,12 +118,15 @@ function setup {
         mkdir -p "$DATA_ROOT/sources"
     fi
 
+    # Create empty sshd settings dir for settings image creation later on.
+    # Who knows, maybe we need to stuff information there some day.
+    if [ ! -d "$DATA_ROOT/sshd" ]; then
+        mkdir -p "$DATA_ROOT/sshd"
+    fi
+
     # Snap is done here, just needs ta check inside ya sshd settings
     # (on other platforms)
     if [ "$SNAP" == "" ]; then
-        if [ ! -d "$DATA_ROOT/sshd" ]; then
-            mkdir -p "$DATA_ROOT/sshd"
-        fi
         if [ -f "$DATA_ROOT/sshd/id_rsa" ]; then
             rm "$DATA_ROOT/sshd/id_rsa"
         fi
