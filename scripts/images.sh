@@ -64,7 +64,7 @@ function initImageVars {
             QEMU_ARGS="\
                 -cpu cortex-a72 \
                 -device intel-hda -device hda-output \
-                -device virtio-gpu-pci \
+                -device virtio-gpu-gl-pci \
                 -device virtio-keyboard-pci \
                 -device virtio-net-pci,netdev=net \
                 -device virtio-mouse-pci \
@@ -76,7 +76,7 @@ function initImageVars {
             QEMU_ARGS="\
                 -cpu Haswell-v4 \
                 -device intel-hda -device hda-output \
-                -device virtio-gpu-pci \
+                -device virtio-gpu-gl-pci \
                 -device virtio-keyboard-pci \
                 -device virtio-net-pci,netdev=net \
                 -device virtio-mouse-pci \
