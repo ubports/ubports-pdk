@@ -4,6 +4,8 @@ A way to help the development of Ubuntu Touch. Runs an Ubuntu Touch emulator tha
 has little pre-installed, yet (no indicators or no core apps so far). It allows you
 to build, install and test system components.
 
+![Screenshot_2021-08-19_14-49-05](https://user-images.githubusercontent.com/15277964/130065951-9fa7a9fd-b7db-47c1-9bd6-b9dee087af7f.png)
+
 ## Goals:
 
 - Make debugging platform components easy
