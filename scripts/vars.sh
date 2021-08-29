@@ -16,6 +16,7 @@ function initCommonVars {
         NPROCS="$(sysctl -n hw.ncpu)"
     fi
 
+    DEFAULT_DATA_ROOT="$HOME/UbuntuTouchPdk"
     IMG_NAME="ubuntu-touch-pdk-$ARCH.raw"
     PULL_IMG_NAME="${IMG_NAME}.xz"
     ARTIFACTS_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-$ARCH/lastSuccessfulBuild/artifact"
