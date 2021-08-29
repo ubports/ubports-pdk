@@ -37,13 +37,25 @@ function warnMissingData {
     echo "This directory will contain your VM images and source code."
 
     while [ "$IS_VALID" == "0" ]; do
-        printf "Path: "
+        printf "Path ($DEFAULT_DATA_ROOT): "
         read NEW_DATA_ROOT
+
+        if [[ -z $NEW_DATA_ROOT ]]; then
+            NEW_DATA_ROOT="$DEFAULT_DATA_ROOT"
+        fi
+
         NEW_DATA_ROOT="$(realpath $NEW_DATA_ROOT)"
         if [ -d "$NEW_DATA_ROOT" ]; then
             IS_VALID=1
             continue;
+        else
+            read -p "Path does not exist, do you want create it? [Y/n]" yn
+            case $yn in
+                [Nn]* ) ;;
+                * ) mkdir -p "$NEW_DATA_ROOT"; break;;
+            esac
         fi
+
         echo "Please make sure the directory path is valid and exists"
     done
 
