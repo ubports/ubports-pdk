@@ -80,11 +80,11 @@ function tryInstallSshd {
     if [ "$(uname -s)" == "Linux" ]; then
         if [ -f /usr/bin/apt ]; then
             sudo apt install openssh-client openssh-server && \
-                sudo systemctl enable ssh && \
+                sudo systemctl enable --now ssh && \
                 echo "SSH enabled successfully!"
         elif [ -f /usr/bin/dnf ]; then
             sudo dnf install openssh-clients openssh-server && \
-                sudo systemctl enable sshd && \
+                sudo systemctl enable --now sshd && \
                 echo "SSH enabled successfully!"
         else
             echo "Unknown package manager used, please add support for it in UBports PDK".
