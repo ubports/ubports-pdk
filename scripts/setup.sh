@@ -80,7 +80,11 @@ function tryInstallSshd {
     if [ "$(uname -s)" == "Linux" ]; then
         if [ -f /usr/bin/apt ]; then
             sudo apt install openssh-client openssh-server && \
-                sudo systemctl enable ssh && \
+                sudo systemctl enable --now ssh && \
+                echo "SSH enabled successfully!"
+        elif [ -f /usr/bin/dnf ]; then
+            sudo dnf install openssh-clients openssh-server && \
+                sudo systemctl enable --now sshd && \
                 echo "SSH enabled successfully!"
         else
             echo "Unknown package manager used, please add support for it in UBports PDK".
@@ -93,7 +97,14 @@ function tryInstallSshd {
 function checkSsh {
     # Only required on non-Snap Linux
     if [ "$(uname -s)" == "Linux" ] && [ "$SNAP_USER_COMMON" == "" ]; then
-        IS_INSTALLED=$(systemctl status ssh 1&>/dev/null && echo 1 || echo 0)
+        case $(lsb_release -si) in
+            Fedora)
+                IS_INSTALLED=$(systemctl status sshd 1&>/dev/null && echo 1 || echo 0)
+                ;;
+            *)
+                IS_INSTALLED=$(systemctl status ssh 1&>/dev/null && echo 1 || echo 0)
+                ;;
+        esac
         if [ "$IS_INSTALLED" != "1" ]; then
             echo "WARNING: The OpenSSH server seems to be missing or not activated, please install it using your package manager."
             while true; do
