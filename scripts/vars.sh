@@ -17,9 +17,11 @@ function initCommonVars {
     fi
 
     DEFAULT_DATA_ROOT="$CONFIG_ROOT/data"
-    IMG_NAME="ubuntu-touch-pdk-$ARCH.raw"
+    IMG_NAME="ubuntu-touch-pdk-img-$ARCH.raw"
     PULL_IMG_NAME="${IMG_NAME}.xz"
-    ARTIFACTS_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-$ARCH/lastSuccessfulBuild/artifact"
+    # The CI job name happens to have "arm64" in it. However, it now contains
+    # images for all architectures.
+    ARTIFACTS_URL="https://ci.ubports.com/job/focal-hybris-rootfs-arm64/job/master/lastSuccessfulBuild/artifact"
     PULL_URL="$ARTIFACTS_URL/$PULL_IMG_NAME"
 
     MEM_VM=$((MEM_TOTAL/2))
