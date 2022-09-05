@@ -20,8 +20,6 @@ apps:
   pdk:
     environment:
       LD_LIBRARY_PATH: ${SNAP}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}:${SNAP}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/ceph:${SNAP}/lib/${SNAPCRAFT_ARCH_TRIPLET}:${SNAP}/usr/lib
-      GDK_BACKEND: x11
-      GDK_SCALE: 1
     command: bin/desktop-launch ubuntu-touch-pdk
     command-chain: [ bin/runner ]
     plugs:
@@ -38,6 +36,7 @@ apps:
       - network-control
       - unity7
       - x11
+      - wayland
 
 layout:
   /usr/sbin/smbd:
