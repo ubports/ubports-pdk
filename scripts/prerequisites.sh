@@ -6,7 +6,7 @@ HOST_OS=$(uname -s)
 
 echo "Installing prerequisites"
 if [ "$HOST_OS" == "Darwin" ]; then
-    brew install knazarov/qemu-virgl/qemu-virgl
+    brew install fredldotme/homebrew-qemu-virgl/qemu-virgl
     brew install wget
     brew install coreutils
 elif [ "$HOST_OS" == "Linux" ]; then
