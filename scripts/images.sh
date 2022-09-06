@@ -6,7 +6,7 @@ function initImageVars {
             if [ "$SNAP" == "" ]; then
                 QEMU=qemu-system-aarch64
             else
-                QEMU=qemu-ut-pdk.arm64
+                QEMU="$SNAP/usr/bin/qemu-system-aarch64"
             fi
             QEMU_ARGS="\
                 -cpu cortex-a72 \
@@ -18,7 +18,7 @@ function initImageVars {
             if [ "$SNAP" == "" ]; then
                 QEMU=qemu-system-x86_64
             else
-                QEMU=qemu-ut-pdk.qemu-virgil
+                QEMU="$SNAP/usr/bin/qemu-system-x86_64"
             fi
             QEMU_ARGS="\
                 -cpu Haswell-v4 \
