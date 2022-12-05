@@ -1,6 +1,8 @@
+#!/usr/bin/env bash
+
 function warnMissingPlugs {
     # Only run in Snap environments
-    if [ "$SNAP" == "" ]; then
+    if [ -n "$SNAP" ]; then
         return
     fi
 
@@ -149,7 +151,7 @@ function setup {
 
     # Snap is done here, just needs ta check inside ya sshd settings
     # (on other platforms)
-    if [ "$SNAP" == "" ]; then
+    if [ -n "$SNAP" ]; then
         if [ -f "$DATA_ROOT/sshd/id_rsa" ]; then
             rm "$DATA_ROOT/sshd/id_rsa"
         fi

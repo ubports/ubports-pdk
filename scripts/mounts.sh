@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 function initSettingsVars {
     if [ "$(uname -s)" == "Darwin" ]; then
         SETTINGS_FILE="$DATA_ROOT/sshd/settings.dmg"
@@ -57,7 +59,7 @@ function copySettingsIntoImage {
 
 function startVirtiofsd {
     # Return immediately in non-Snap environments
-    if [ "$SNAP" == "" ]; then
+    if [ -n "$SNAP" ]; then
         return
     fi
     VIRTIOFS_SOCK="$SNAP_USER_DATA/$NAME-vhost-fs.sock"
