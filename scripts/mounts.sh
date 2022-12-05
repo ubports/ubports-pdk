@@ -59,7 +59,7 @@ function copySettingsIntoImage {
 
 function startVirtiofsd {
     # Return immediately in non-Snap environments
-    if [ -n "$SNAP" ]; then
+    if [ -z "$SNAP" ]; then
         return
     fi
     VIRTIOFS_SOCK="$SNAP_USER_DATA/$NAME-vhost-fs.sock"

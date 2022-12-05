@@ -5,7 +5,7 @@ function initImageVars {
         if [ "$ARCH" == "arm64" ]; then
             EFI_1="$SNAP/usr/share/qemu/edk2-aarch64-code.fd"
             EFI_2="$SNAP/usr/share/qemu/edk2-arm-vars.fd"
-            if [ -n "$SNAP" ]; then
+            if [ -z "$SNAP" ]; then
                 QEMU=qemu-system-aarch64
             else
                 QEMU="$SNAP/usr/bin/qemu-system-aarch64"
@@ -17,7 +17,7 @@ function initImageVars {
                 -device AC97 \
                 -serial mon:stdio"
         else
-            if [ -n "$SNAP" ]; then
+            if [ -z "$SNAP" ]; then
                 QEMU=qemu-system-x86_64
             else
                 QEMU="$SNAP/usr/bin/qemu-system-x86_64"
