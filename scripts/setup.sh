@@ -1,6 +1,8 @@
+#!/usr/bin/env bash
+
 function warnMissingPlugs {
     # Only run in Snap environments
-    if [ "$SNAP" == "" ]; then
+    if [ -z "$SNAP" ]; then
         return
     fi
 
@@ -96,16 +98,11 @@ function tryInstallSshd {
 
 function checkSsh {
     # Only required on non-Snap Linux
-    if [ "$(uname -s)" == "Linux" ] && [ "$SNAP_USER_COMMON" == "" ]; then
-        case $(lsb_release -si) in
-            Fedora)
-                IS_INSTALLED=$(systemctl status sshd 1&>/dev/null && echo 1 || echo 0)
-                ;;
-            *)
-                IS_INSTALLED=$(systemctl status ssh 1&>/dev/null && echo 1 || echo 0)
-                ;;
-        esac
-        if [ "$IS_INSTALLED" != "1" ]; then
+    if [ "$(uname -s)" == "Linux" ] && [ -z "$SNAP" ]; then
+        # Check if ssh or sshd is running and set the variable IS_INSTALLED to 1 if it is using pgrep
+        pgrep -f "ssh" > /dev/null && IS_INSTALLED=1 || IS_INSTALLED=0
+        
+        if [ "$IS_INSTALLED" -ne 1 ]; then
             echo "WARNING: The OpenSSH server seems to be missing or not activated, please install it using your package manager."
             while true; do
                 read -p "Would you like to do that automatically now [y/n]? " yn
@@ -149,7 +146,7 @@ function setup {
 
     # Snap is done here, just needs ta check inside ya sshd settings
     # (on other platforms)
-    if [ "$SNAP" == "" ]; then
+    if [ -z "$SNAP" ]; then
         if [ -f "$DATA_ROOT/sshd/id_rsa" ]; then
             rm "$DATA_ROOT/sshd/id_rsa"
         fi

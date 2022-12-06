@@ -11,7 +11,7 @@ if [ "$HOST_OS" == "Darwin" ]; then
     brew install coreutils
 elif [ "$HOST_OS" == "Linux" ]; then
     # Only necessary in non-Snap environments
-    if [ "$SNAP" == "" ]; then
+    if [ -n "$SNAP" ]; then
         sudo snap install --edge qemu-ut-pdk
         sudo snap connect qemu-ut-pdk:kvm
         # Heck, throw a group check in there too
