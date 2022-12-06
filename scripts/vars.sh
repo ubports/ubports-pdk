@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2034  # Variables used externally by other scripts
+
 CODENAME=Archangel
 VERSION=0.0.0-rc0
 

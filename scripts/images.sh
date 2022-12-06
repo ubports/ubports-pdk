@@ -23,7 +23,7 @@ function initImageVars {
                 QEMU="$SNAP/usr/bin/qemu-system-x86_64"
             fi
             QEMU_ARGS="\
-                -cpu Haswell-v4 \
+                -cpu host \
                 -netdev user,id=ethernet.0,hostfwd=tcp:127.0.0.1:5555-:5555 \
                 -device rtl8139,netdev=ethernet.0 \
                 -device AC97 \
@@ -38,8 +38,8 @@ function initImageVars {
         QEMU_ARGS="-device virtio-keyboard-pci -device virtio-mouse-pci $QEMU_ARGS"
     elif [ "$(uname -s)" == "Darwin" ]; then
         if [ "$ARCH" == "arm64" ]; then
-            EFI_1="$(dirname $(which qemu-img))/../share/qemu/edk2-aarch64-code.fd"
-            EFI_2="$(dirname $(which qemu-img))/../share/qemu/edk2-arm-vars.fd"
+            EFI_1="$(dirname "$(which qemu-img)")/../share/qemu/edk2-aarch64-code.fd"
+            EFI_2="$(dirname "$(which qemu-img)")/../share/qemu/edk2-arm-vars.fd"
             QEMU=qemu-system-aarch64
             QEMU_ARGS="\
                 -cpu cortex-a72 \
@@ -54,7 +54,7 @@ function initImageVars {
         else
             QEMU=qemu-system-x86_64
             QEMU_ARGS="\
-                -cpu Haswell-v4 \
+                -cpu host \
                 -device intel-hda -device hda-output \
                 -device virtio-gpu-gl-pci \
                 -device virtio-keyboard-pci \
@@ -67,8 +67,6 @@ function initImageVars {
 
         if [ "$HOST_ARCH" == "$ARCH" ]; then
             QEMU_ARGS="-machine virt,accel=hvf,highmem=off $QEMU_ARGS"
-        else
-            QEMU_ARGS="$QEMU_ARGS"
         fi
     fi
 }
@@ -94,6 +92,7 @@ function pullLatestImage {
 }
 
 function runImage {
+    # shellcheck source=/dev/null
     source "$IMG_CACHE/$NAME/info.sh"
 
     EFI_ARGS=""
@@ -125,7 +124,7 @@ function listImages {
     echo ""
 
     CACHE_IMAGES=$(ls "$IMG_CACHE")
-    if [ "$CACHE_IMAGES" == "" ]; then
+    if [ -z "$CACHE_IMAGES" ]; then
         echo "No images found"
         return 0
     fi
@@ -136,9 +135,9 @@ function listImages {
             continue;
         fi
         if [ -f "$IMG_CACHE/$i/info.sh" ]; then
-            IMG_ARCH=$(cat "$IMG_CACHE/$i/info.sh" | awk -F"=" '{ print $2 }')
+            IMG_ARCH=$(awk -F"=" '{ print $2 }' < "$IMG_CACHE/$i/info.sh")
         fi
-        if [ "$IMG_ARCH" == "" ]; then
+        if [ -z "$IMG_ARCH" ]; then
             IMG_ARCH="$ARCH"
         fi
         printf "\t- %s (%s)\n" "$i" "$IMG_ARCH"

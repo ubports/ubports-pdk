@@ -78,5 +78,7 @@ function startVirtiofsd {
     while [ ! -e "$VIRTIOFS_SOCK" ]; do
         sleep 0.1
     done
+    
+    # shellcheck disable=SC2034  # Variable used externally by other scripts
     VIRTIOFS_ACTIVE=1
 }
