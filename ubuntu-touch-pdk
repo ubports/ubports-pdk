@@ -7,9 +7,9 @@ TMPDIR=""
 trap ctrl_c INT
 
 function ctrl_c {
-    echo "CTRL-C received"
-    for JOB in `jobs -p`; do
-        kill -9 $JOB
+    printf "\n\nCTRL-C received\n"
+    for JOB in $(jobs -p); do
+        kill -9 "$JOB"
     done
     exit 1
 }
@@ -32,14 +32,12 @@ NAME=default
 ARCH="$HOST_ARCH"
 
 function printHelp {
-    echo "usage: $0 <options> <command> [<command> ..]"
-    echo ""
-    echo "Options:"
-    printf "\t-a=|--arch=: Architecture override (optional, defaults to '$HOST_ARCH')\n"
+    printf "usage: %s <options> <command> [<command> ..]\n\n" "$0"
+    printf "Options:\n"
+    printf "\t-a=|--arch=: Architecture override (optional, defaults to '%s')\n" "$HOST_ARCH"
     printf "\t             Possible values: arm64, amd64\n"
-    printf "\t-n=|--name=: Name of the image (optional, defaults to 'default')\n"
-    echo ""
-    echo "Commands:"
+    printf "\t-n=|--name=: Name of the image (optional, defaults to 'default')\n\n"
+    printf "Commands:\n"
     printf "\tsetup: Host OS preparations (recommended for first-time use)\n"
     printf "\tclear: Clean up all images\n"
     printf "\tpull: Download pre-generated image\n"
@@ -100,48 +98,48 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Read common script variables
-source $SCRIPTPATH/scripts/vars.sh
+source "$SCRIPTPATH/scripts/vars.sh"
 initCommonVars
 mkdir -p "$CONFIG_ROOT"
 
 # Source the config if available
 if [ -f "$CONFIG_ROOT/config.sh" ]; then
+    # shellcheck source=/dev/null
     source "$CONFIG_ROOT/config.sh"
     IMG_CACHE="$DATA_ROOT/pdk-image-cache"
 fi
 
 if [ "$PRINT_VERSION" == "yes" ]; then
-    echo "$VERSION ($CODENAME)"
+    printf "%s (%s)" "$VERSION" "$CODENAME"
     exit 0
 fi
 
 function printSeparator {
-    echo "#####################################"
+    printf "#####################################\n"
 }
 
 printSeparator
-echo "Ubuntu Touch Platform Development Kit"
+printf "Ubuntu Touch Platform Development Kit\n"
 printSeparator
-echo ""
-echo "Executing tasks:"
-printf "\tSetup? $SETUP\n"
-printf "\tClear cache? $CLEARCACHE\n"
-printf "\tList? $LIST\n"
-printf "\tPull image? $PULL_IMG\n"
-printf "\tRun an image? $RUN\n"
+printf "\nExecuting tasks:\n"
+printf "\tSetup? %s\n" "$SETUP"
+printf "\tClear cache? %s\n" "$CLEARCACHE"
+printf "\tList? %s\n" "$LIST"
+printf "\tPull image? %s\n" "$PULL_IMG"
+printf "\tRun an image? %s\n\n" "$RUN"
 
-source $SCRIPTPATH/scripts/caches.sh
-source $SCRIPTPATH/scripts/setup.sh
-source $SCRIPTPATH/scripts/images.sh
-source $SCRIPTPATH/scripts/mounts.sh
+source "$SCRIPTPATH/scripts/caches.sh"
+source "$SCRIPTPATH/scripts/setup.sh"
+source "$SCRIPTPATH/scripts/images.sh"
+source "$SCRIPTPATH/scripts/mounts.sh"
 initImageVars
 initSettingsVars
 
-echo ""
-
-# Warn when something's not right
-if [ "$DATA_ROOT" == "" ] || [ "$SETUP" == "yes" ]; then
-    echo "WARNING: You haven't set up your environment yet. Continuing with setup..."
+if [ -z "$DATA_ROOT" ] || [ "$SETUP" == "yes" ]; then
+    # Warn when something's not right
+    if [ -z "$DATA_ROOT" ]; then
+        printf "WARNING: You haven't set up your environment yet. Continuing with setup...\n"
+    fi
     setup
     generateSettingsImage
     copySettingsIntoImage
@@ -164,25 +162,23 @@ fi
 
 # Aaand run it!
 if [ "$RUN" == "yes" ]; then
-    echo ""
-    echo "Name of the environment: $NAME"
-    echo ""
+    printf "\nName of the environment: %s\n\n" "$NAME"
     if [ ! -d "$IMG_CACHE/$NAME" ]; then
-        echo "Cache directory for image '$NAME' doesn't exist."
-        echo "Consider pulling or creating an image yourself."
+        printf "Cache directory for image '%s' doesn't exist.\n" "$NAME"
+        printf "Consider pulling or creating an image yourself.\n"
         exit 1
     fi
     if [ ! -f "$IMG_CACHE/$NAME/hdd.raw" ]; then
-        echo "Hard disk for image '$NAME' doesn't exist."
-        echo "Consider pulling or creating an image yourself."
+        printf "Hard disk for image '%s' doesn't exist." "$NAME"
+        printf "Consider pulling or creating an image yourself."
         exit 1
     fi
     startVirtiofsd
     runImage
 fi
 
-for JOB in `jobs -p`; do
-    kill -9 $JOB
+for JOB in $(jobs -p); do
+    kill -9 "$JOB"
 done
 
 exit 0

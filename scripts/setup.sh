@@ -39,19 +39,19 @@ function warnMissingData {
     echo "This directory will contain your VM images and source code."
 
     while [ "$IS_VALID" == "0" ]; do
-        printf "Path ($DEFAULT_DATA_ROOT): "
-        read NEW_DATA_ROOT
+        printf "Path (%s): " "$DEFAULT_DATA_ROOT"
+        read -r NEW_DATA_ROOT
 
         if [[ -z $NEW_DATA_ROOT ]]; then
             NEW_DATA_ROOT="$DEFAULT_DATA_ROOT"
         fi
 
-        NEW_DATA_ROOT="$(realpath $NEW_DATA_ROOT)"
+        NEW_DATA_ROOT=$(realpath "$NEW_DATA_ROOT")
         if [ -d "$NEW_DATA_ROOT" ]; then
             IS_VALID=1
             continue;
         else
-            read -p "Path does not exist, do you want create it? [Y/n]" yn
+            read -r -p "Path does not exist, do you want create it? [Y/n]" yn
             case $yn in
                 [Nn]* ) ;;
                 * ) mkdir -p "$NEW_DATA_ROOT"; break;;
@@ -75,6 +75,7 @@ function warnMissingData {
     echo "DATA_ROOT=$NEW_DATA_ROOT" > "$CONFIG_ROOT/config.sh"
     echo "SRC_ROOT=$NEW_DATA_ROOT/sources" >> "$CONFIG_ROOT/config.sh"
     echo "USER=$USER" >> "$CONFIG_ROOT/config.sh"
+    # shellcheck source=/dev/null
     source "$CONFIG_ROOT/config.sh"
 }
 
@@ -105,7 +106,7 @@ function checkSsh {
         if [ "$IS_INSTALLED" -ne 1 ]; then
             echo "WARNING: The OpenSSH server seems to be missing or not activated, please install it using your package manager."
             while true; do
-                read -p "Would you like to do that automatically now [y/n]? " yn
+                read -r -p "Would you like to do that automatically now [y/n]? " yn
                 case $yn in
                     [Yy]* ) tryInstallSshd; break;;
                     [Nn]* ) break;;
@@ -118,7 +119,7 @@ function checkSsh {
         if [ "$OUTPUT" != "Remote Login: On" ]; then
             echo "WARNING: SSH doesn't seem to be enabled!"
             while true; do
-                read -p "Would you like to enable it now [y/n]? " yn
+                read -r -p "Would you like to enable it now [y/n]? " yn
                 case $yn in
                     [Yy]* ) tryInstallSshd; break;;
                     [Nn]* ) break;;
@@ -130,7 +131,7 @@ function checkSsh {
 }
 
 function setup {
-    bash $SCRIPTPATH/scripts/prerequisites.sh
+    bash "$SCRIPTPATH/scripts/prerequisites.sh"
     warnMissingPlugs
     warnMissingData
 
@@ -166,7 +167,7 @@ function setup {
                 chmod 700 "$HOME/.ssh"
             fi
             echo "Inserting ssh key into authorized keys list"
-            echo "$PUBKEY_CONTENTS" >> $HOME/.ssh/authorized_keys
+            echo "$PUBKEY_CONTENTS" >> "$HOME/.ssh/authorized_keys"
         fi
     fi
 }
