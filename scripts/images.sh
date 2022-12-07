@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+# Source https://apple.stackexchange.com/questions/83939/compare-multi-digit-version-numbers-in-bash/123408#123408
+function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+
+function getQemuVersion {
+    QEMU_VERSION=$("$QEMU" --version | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
+    export QEMU_VERSION
+}
+
 function initImageVars {
     if [ "$(uname -s)" == "Linux" ]; then
         if [ "$ARCH" == "arm64" ]; then
@@ -29,11 +37,26 @@ function initImageVars {
                 -device AC97 \
                 -serial mon:stdio"
         fi
-
+    
+        QEMU_ARGS="-display gtk,gl=on $QEMU_ARGS"
+        getQemuVersion
+        
         if [ "$HOST_ARCH" == "$ARCH" ]; then
-            QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on -display gtk,gl=on $QEMU_ARGS"
+            if [ "$(version "$QEMU_VERSION")" -ge "$(version "6.2.0")" ]; then
+                # Version 6.2.0 changed the virtio-gpu features
+                QEMU_ARGS="-enable-kvm -device virtio-vga-gl $QEMU_ARGS"
+            else
+                # Maintain compatibility with older versions
+                QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on $QEMU_ARGS"
+            fi
         else
-            QEMU_ARGS="-machine virt -device virtio-gpu-pci,virgl=on -display gtk,gl=on $QEMU_ARGS"
+            if [ "$(version "$QEMU_VERSION")" -ge "$(version "6.2.0")" ]; then
+                # Version 6.2.0 changed the virtio-gpu features
+                QEMU_ARGS="-machine virt -device virtio-gpu-gl-pci $QEMU_ARGS"
+            else
+                # Maintain compatibility with older versions
+                QEMU_ARGS="-machine virt -device virtio-gpu-pci,virgl=on $QEMU_ARGS"
+            fi
         fi
         QEMU_ARGS="-device virtio-keyboard-pci -device virtio-mouse-pci $QEMU_ARGS"
     elif [ "$(uname -s)" == "Darwin" ]; then
