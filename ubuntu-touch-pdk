@@ -30,13 +30,16 @@ RUN=no
 PRINT_VERSION=no
 NAME=default
 ARCH="$HOST_ARCH"
+RELEASE=focal
 
 function printHelp {
     printf "usage: %s <options> <command> [<command> ..]\n\n" "$0"
     printf "Options:\n"
-    printf "\t-a=|--arch=: Architecture override (optional, defaults to '%s')\n" "$HOST_ARCH"
-    printf "\t             Possible values: arm64, amd64\n"
-    printf "\t-n=|--name=: Name of the image (optional, defaults to 'default')\n\n"
+    printf "\t-a=|--arch=:    Architecture override (optional, defaults to '%s')\n" "$HOST_ARCH"
+    printf "\t                Possible values: arm64, amd64\n"
+    printf "\t-r=|--release=: Ubuntu Touch release override (optional, defaults to 'focal')\n"
+    printf "\t                Possible values: noble, focal\n"
+    printf "\t-n=|--name=:    Name of the image (optional, defaults to 'default')\n\n"
     printf "Commands:\n"
     printf "\tsetup: Host OS preparations (recommended for first-time use)\n"
     printf "\tclear: Clean up all images\n"
@@ -84,6 +87,10 @@ while [[ $# -gt 0 ]]; do
         ;;
         "-a="*|"--arch="*)
             ARCH="${arg#*=}"
+            shift
+        ;;
+        "-r="*|"--release="*)
+            RELEASE="${arg#*=}"
             shift
         ;;
         -h|--help)
@@ -134,6 +141,12 @@ source "$SCRIPTPATH/scripts/images.sh"
 source "$SCRIPTPATH/scripts/mounts.sh"
 initImageVars
 initSettingsVars
+
+if [ -z "$IMG_NAME" ]; then
+    printf "Invalid release '%s' specified.\n" "$RELEASE"
+    printHelp
+    exit 1
+fi
 
 if [ -z "$DATA_ROOT" ] || [ "$SETUP" == "yes" ]; then
     # Warn when something's not right
