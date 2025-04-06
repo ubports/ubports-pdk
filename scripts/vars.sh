@@ -22,7 +22,7 @@ function initCommonVars {
     DEFAULT_DATA_ROOT="$CONFIG_ROOT/data"
     case ${RELEASE} in
         focal) IMG_NAME="ubuntu-touch-pdk-img-$ARCH.raw" ;;
-        noble) IMG_NAME="ubuntu-touch-pdk-img-devel-$ARCH.raw" ;;
+        noble) IMG_NAME="ubuntu-touch-pdk-img-next-$ARCH.raw" ;;
     esac
     PULL_IMG_NAME="${IMG_NAME}.xz"
     # The CI job name happens to have "arm64" in it. However, it now contains
