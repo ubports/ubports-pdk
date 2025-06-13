@@ -86,6 +86,7 @@ parts:
   virtiofsd:
     after: [ runner ]
     source: https://gitlab.com/virtio-fs/virtiofsd.git
+    source-tag: v1.13.2
     plugin: rust
     build-packages:
       - libseccomp-dev
