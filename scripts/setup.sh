@@ -131,7 +131,7 @@ function checkSsh {
 }
 
 function setup {
-    bash "$SCRIPTPATH/scripts/prerequisites.sh"
+    [ -z "$SNAP" ] && bash "$SCRIPTPATH/scripts/prerequisites.sh"
     warnMissingPlugs
     warnMissingData
 

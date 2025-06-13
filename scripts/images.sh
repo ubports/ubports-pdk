@@ -11,15 +11,22 @@ function getQemuVersion {
 function initImageVars {
     if [ "$(uname -s)" == "Linux" ]; then
         if [ "$ARCH" == "arm64" ]; then
-            EFI_1="$SNAP/usr/share/qemu/edk2-aarch64-code.fd"
-            EFI_2="$SNAP/usr/share/qemu/edk2-arm-vars.fd"
+            SUBDIR="qemu"
+            EFI_SUBDIR="qemu"
+            EFI_CODE="edk2-aarch64-code.fd"
+            EFI_VARS="edk2-arm-vars.fd"
+            #[ -z "$SNAP" ] && # next line
+            EFI_SUBDIR=AAVMF && EFI_CODE="AAVMF_CODE.secboot.fd" && EFI_VARS="AAVMF_VARS.fd"
+            EFI_1="$SNAP/usr/share/$EFI_SUBDIR/$EFI_CODE"
+            EFI_2="$SNAP/usr/share/$EFI_SUBDIR/$EFI_VARS"
             if [ -z "$SNAP" ]; then
                 QEMU=qemu-system-aarch64
             else
                 QEMU="$SNAP/usr/bin/qemu-system-aarch64"
             fi
             QEMU_ARGS="\
-                -cpu cortex-a72 \
+                -machine virt
+                -cpu host \
                 -netdev user,id=ethernet.0,hostfwd=tcp:127.0.0.1:5555-:5555 \
                 -device rtl8139,netdev=ethernet.0 \
                 -device AC97 \
@@ -37,14 +44,14 @@ function initImageVars {
                 -device AC97 \
                 -serial mon:stdio"
         fi
-    
+
         QEMU_ARGS="-display gtk,gl=on $QEMU_ARGS"
         getQemuVersion
-        
+
         if [ "$HOST_ARCH" == "$ARCH" ]; then
             if [ "$(version "$QEMU_VERSION")" -ge "$(version "6.2.0")" ]; then
                 # Version 6.2.0 changed the virtio-gpu features
-                QEMU_ARGS="-enable-kvm -device virtio-vga-gl $QEMU_ARGS"
+                QEMU_ARGS="-enable-kvm -device virtio-gpu-gl-pci $QEMU_ARGS"
             else
                 # Maintain compatibility with older versions
                 QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on $QEMU_ARGS"
