@@ -8,20 +8,21 @@ description: |
 
 grade: stable
 confinement: strict
-base: core20
+base: core24
 
-architectures:
-  - build-on: amd64
-    run-on: amd64
-  - build-on: arm64
-    run-on: arm64
+platforms:
+  arm64:
+    build-on: [arm64]
+  amd64:
+    build-on: [amd64]
 
 apps:
   pdk:
     environment:
-      LD_LIBRARY_PATH: ${SNAP}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}:${SNAP}/usr/lib/${SNAPCRAFT_ARCH_TRIPLET}/ceph:${SNAP}/lib/${SNAPCRAFT_ARCH_TRIPLET}:${SNAP}/usr/lib
-    command: bin/desktop-launch ubuntu-touch-pdk
+      LD_LIBRARY_PATH: ${SNAP}/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:${SNAP}/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/ceph:${SNAP}/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:${SNAP}/usr/lib
+    command: bin/ubuntu-touch-pdk
     command-chain: [ bin/runner ]
+    extensions: [ gnome ]
     plugs:
       - audio-playback
       - audio-record
@@ -41,16 +42,20 @@ apps:
 layout:
   /usr/sbin/smbd:
     bind-file: $SNAP/usr/sbin/smbd
+  /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/qemu:
+    bind: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/qemu
+  /usr/lib/ipxe:
+    bind: $SNAP/usr/lib/ipxe
 
 parts:
   pdk:
     source: .
     plugin: dump
-    override-pull: |
-      snapcraftctl pull
-      source ./scripts/vars.sh
-      snapcraftctl set-version "$VERSION"
-      snapcraftctl set-grade "stable"
+    override-prime: |
+      craftctl default
+      source $CRAFT_PART_SRC/scripts/vars.sh
+      craftctl set version="$VERSION"
+      craftctl set grade="stable"
     organize:
       scripts: bin/scripts
       ubuntu-touch-pdk: bin/ubuntu-touch-pdk
@@ -61,187 +66,35 @@ parts:
       - openssh-client
       - mtools
       - coreutils
-  virgl:
-    source: git://anongit.freedesktop.org/virglrenderer
-    source-tag: virglrenderer-0.8.0
-    source-depth: 1
-    plugin: autotools
-    autotools-configure-parameters:
-      - --prefix=/usr
-      - --enable-gbm-allocation
-    build-packages:
-      - libgbm-dev
-      - libdrm-dev
-      - libepoxy-dev
-    stage-packages:
-      - libdrm2
-      - libepoxy0
-      - libgbm1
-      - libwayland-server0
-      - libx11-6
-      - libxau6
-      - libxcb1
-      - libxdmcp6
-  qemu:
-    after: [ virgl ]
-    source: git://git.qemu.org/qemu.git
-    source-tag: v6.0.0
-    source-depth: 1
-    plugin: autotools
-    autotools-configure-parameters:
-      - --prefix=/usr
-      - --target-list=x86_64-softmmu,aarch64-softmmu
-      - --audio-drv-list=pa,sdl
-      - --enable-jemalloc
-      - --enable-libusb
-      - --enable-usb-redir
-      - --enable-sdl
-      - --enable-spice
-      - --enable-xfsctl
-      - --enable-virtiofsd
-    override-build: |
-      patch -p1 < $SNAPCRAFT_PROJECT_DIR/snap/local/qemu-patches/virtiofsd-1.patch
-      patch -p1 < $SNAPCRAFT_PROJECT_DIR/snap/local/qemu-patches/virtiofsd-2.patch
-      patch -p1 < $SNAPCRAFT_PROJECT_DIR/snap/local/qemu-patches/virtiofsd-3.patch
-      snapcraftctl build
-    build-packages:
-      - bison
-      - flex
-      - gettext
-      - libaio-dev
-      - libbluetooth-dev
-      - libbrlapi-dev
-      - libbz2-dev
-      - libcap-dev
-      - libcap-ng-dev
-      - libcurl4-gnutls-dev
-      - libgtk-3-dev
-      - libibverbs-dev
-      - libjemalloc-dev
-      - libjpeg8-dev
-      - libncurses5-dev
-      - libnuma-dev
-      - librbd-dev
-      - librdmacm-dev
-      - libsasl2-dev
-      - libsdl2-dev
-      - libsdl2-image-dev
-      - libseccomp-dev
-      - libsnappy-dev
-      - libspice-protocol-dev
-      - libspice-server-dev
-      - libusb-1.0-0-dev
-      - libusbredirparser-dev
-      - libvde-dev
-      - libvdeplug-dev
-      - libvte-2.91-dev
-      - libxen-dev
-      - liblzo2-dev
-      - libx11-dev
-      - libxml2-dev
-      - libepoxy-dev
-      - libglib2.0-dev
-      - libfdt-dev
-      - libpixman-1-dev
-      - xfslibs-dev
-      - zlib1g-dev
-      - libnfs-dev
-      - libiscsi-dev
-      - libpulse-dev
-      - ninja-build
-    stage-packages:
-      - libaio1
-      - libbluetooth3
-      - libboost-iostreams1.67.0
-      - libboost-random1.67.0
-      - libboost-thread1.67.0
-      - libbrlapi0.7
-      - libflac8
-      - libiscsi7
-      - libjemalloc2
-      - libnfs13
-      - libnuma1
-      - librados2
-      - librbd1
-      - libsdl2-2.0-0
-      - libsdl2-image-2.0-0
-      - libsnappy1v5
-      - libsndio7.0
-      - libspice-server1
-      - libusb-1.0-0
-      - libusbredirparser1
-      - libvdeplug2
-      - libxencall1
-      - libxendevicemodel1
-      - libxenevtchn1
-      - libxenforeignmemory1
-      - libxengnttab1
-      - libxenmisc4.11
-      - libxenstore3.0
-      - libxentoolcore1
-      - libxentoollog1
-      - libyajl2
-      - libxi6
-      - libxss1
-      - libasn1-8-heimdal
-      - libatk-bridge2.0-0
-      - libatk1.0-0
-      - libatspi2.0-0
-      - libbrotli1
-      - libcairo-gobject2
-      - libcairo2
-      - libcurl3-gnutls
-      - libdatrie1
-      - libdrm2
-      - libepoxy0
+      - qemu-system-arm
+      - qemu-system-x86
+      - qemu-system-gui
+      - ovmf
+      - qemu-efi-aarch64
       - libfdt1
-      - libfontconfig1
-      - libfreetype6
-      - libfribidi0
-      - libgbm1
-      - libgdk-pixbuf2.0-0
-      - libgraphite2-3
-      - libgssapi3-heimdal
-      - libgtk-3-0
-      - libharfbuzz0b
-      - libhcrypto4-heimdal
-      - libheimbase1-heimdal
-      - libheimntlm0-heimdal
-      - libhx509-5-heimdal
-      - libicu66
-      - libkrb5-26-heimdal
-      - libldap-2.4-2
-      - libnghttp2-14
-      - libpango-1.0-0
-      - libpangocairo-1.0-0
-      - libpangoft2-1.0-0
-      - libroken18-heimdal
-      - librtmp1
-      - libssh-4
-      - libthai0
-      - libvte-2.91-0
-      - libwayland-server0
-      - libwind0-heimdal
-      - libxcb-render0
-      - libxcb-shm0
-      - libxcomposite1
-      - libxdamage1
-    prime:
-      # Fix execstack warnings
-      - -usr/share/qemu/s390-ccw.img
-      - -usr/share/qemu/s390-netboot.img
-      - -usr/share/qemu/openbios-ppc
-      # Remove cruft
-      - -usr/share/qemu/qemu-nsis.bmp
   runner:
-    after: [ qemu ]
+    after: [ pdk ]
     source: snap/local
     plugin: nil
+    override-pull: |
+      craftctl default
+      mkdir -p $CRAFT_STAGE
+      cp -av $CRAFT_PART_SRC/virtiofsd.patch $CRAFT_STAGE
     override-build: |
       mkdir -p $SNAPCRAFT_PART_INSTALL/bin
       cp -av runner $SNAPCRAFT_PART_INSTALL/bin/
-  smbd:
+  virtiofsd:
     after: [ runner ]
+    source: https://gitlab.com/virtio-fs/virtiofsd.git
+    plugin: rust
+    build-packages:
+      - libseccomp-dev
+      - libcap-ng-dev
+    override-pull: |
+      craftctl default
+      patch -p1 < $CRAFT_STAGE/virtiofsd.patch
+  smbd:
+    after: [ runner, virtiofsd ]
     plugin: nil
     stage-packages:
       - samba
@@ -269,55 +122,27 @@ parts:
       - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libwbclient.so*
       - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/samba/*
       - usr/sbin/smbd
-  desktop-gtk3:
-    build-packages:
-      - build-essential
-      - libgtk-3-dev
-    make-parameters:
-      - FLAVOR=gtk3
-    plugin: make
-    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
-    source-subdir: gtk
-    stage-packages:
-      - libxkbcommon0
-      - ttf-ubuntu-font-family
-      - dmz-cursor-theme
-      - light-themes
-      - adwaita-icon-theme
-      - gnome-themes-standard
-      - shared-mime-info
-      - libgtk-3-0
-      - libgdk-pixbuf2.0-0
-      - libglib2.0-bin
-      - libgtk-3-bin
-      - unity-gtk3-module
-      - libappindicator3-1
-      - locales-all
-      - xdg-user-dirs
-      - ibus-gtk3
-      - libibus-1.0-5
-      - fcitx-frontend-gtk3
-  mesa:
-    plugin: nil
-    stage-packages:
-      - libegl1
-      - libgl1
-      - libgl1-mesa-dri
-      - libglx-mesa0
-    build-attributes:
-      - no-patchelf
-    prime:
-      - -lib/udev
-      - -usr/doc
-      - -usr/doc-base
-      - -usr/share/applications
-      - -usr/share/apport
-      - -usr/share/bug
-      - -usr/share/doc
-      - -usr/share/doc-base
-      - -usr/share/icons
-      - -usr/share/libdrm
-      - -usr/share/libwacom
-      - -usr/share/lintian
-      - -usr/share/man
-      - -usr/share/pkgconfig
+  #mesa:
+  #  plugin: nil
+  #  stage-packages:
+  #    - libegl1
+  #    - libgl1
+  #    - libgl1-mesa-dri
+  #    - libglx-mesa0
+  #  build-attributes:
+  #    - no-patchelf
+  #  prime:
+  #    - -lib/udev
+  #    - -usr/doc
+  #    - -usr/doc-base
+  #    - -usr/share/applications
+  #    - -usr/share/apport
+  #    - -usr/share/bug
+  #    - -usr/share/doc
+  #    - -usr/share/doc-base
+  #    - -usr/share/icons
+  #    - -usr/share/libdrm
+  #    - -usr/share/libwacom
+  #    - -usr/share/lintian
+  #    - -usr/share/man
+  #    - -usr/share/pkgconfig
