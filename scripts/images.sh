@@ -45,7 +45,7 @@ function initImageVars {
                 -serial mon:stdio"
         fi
 
-        QEMU_ARGS="-display gtk,gl=on $QEMU_ARGS"
+        QEMU_ARGS="-display $GUI,gl=on $QEMU_ARGS"
         getQemuVersion
 
         if [ "$HOST_ARCH" == "$ARCH" ]; then
