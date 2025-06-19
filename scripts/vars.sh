@@ -20,14 +20,18 @@ function initCommonVars {
     fi
 
     DEFAULT_DATA_ROOT="$CONFIG_ROOT/data"
+    IMG_NAME="ubuntu-touch-pdk-img-$ARCH.raw"
     case ${RELEASE} in
-        focal) IMG_NAME="ubuntu-touch-pdk-img-$ARCH.raw" ;;
-        noble) IMG_NAME="ubuntu-touch-pdk-img-next-$ARCH.raw" ;;
+        20.04|focal) BRANCH="ubports%252Ffocal" ;;
+        24.04-1.x|next|noble) BRANCH="main" ;;
+        *)
+            printf "Invalid release '%s' specified.\n" "$RELEASE"
+            printHelp
+            exit 1
+            ;;
     esac
     PULL_IMG_NAME="${IMG_NAME}.xz"
-    # The CI job name happens to have "arm64" in it. However, it now contains
-    # images for all architectures.
-    ARTIFACTS_URL="https://ci.ubports.com/job/focal-hybris-rootfs-arm64/job/master/lastSuccessfulBuild/artifact"
+    ARTIFACTS_URL="https://ci.ubports.com/job/ubuntu-touch-rootfs/job/${BRANCH}/lastSuccessfulBuild/artifact"
     PULL_URL="$ARTIFACTS_URL/$PULL_IMG_NAME"
 
     MEM_VM=$((MEM_TOTAL/2))
