@@ -16,7 +16,7 @@ to build, install and test system components.
 ## Installation:
 
 - Linux with Snap:
-  - `sudo snap install --beta ubports-pdk`
+  - `sudo snap install ubports-pdk`
   - `sudo snap connect ubports-pdk:kvm`
   - `sudo snap connect ubports-pdk:network-control`
 - macOS & other Linux: Clone this repository or download a copy of it from GitHub
