@@ -42,7 +42,7 @@ function printHelp {
     printf "\t                Possible values: gtk, sdl\n"
     printf "\t-n=|--name=:    Name of the image (optional, defaults to 'default')\n"
     printf "\t-r=|--release=: Ubuntu Touch release override (optional, defaults to 'focal')\n"
-    printf "\t                Possible values: noble, focal\n\n"
+    printf "\t                Possible values: 24.04-1.x, 20.04\n\n"
     printf "Commands:\n"
     printf "\tsetup: Host OS preparations (recommended for first-time use)\n"
     printf "\tclear: Clean up all images\n"
@@ -148,12 +148,6 @@ source "$SCRIPTPATH/scripts/images.sh"
 source "$SCRIPTPATH/scripts/mounts.sh"
 initImageVars
 initSettingsVars
-
-if [ -z "$IMG_NAME" ]; then
-    printf "Invalid release '%s' specified.\n" "$RELEASE"
-    printHelp
-    exit 1
-fi
 
 if [ -z "$DATA_ROOT" ] || [ "$SETUP" == "yes" ]; then
     # Warn when something's not right
