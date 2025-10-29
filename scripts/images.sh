@@ -10,6 +10,7 @@ function getQemuVersion {
 
 function initImageVars {
     if [ "$(uname -s)" == "Linux" ]; then
+        QEMU_DATA_DIR=""
         if [ "$ARCH" == "arm64" ]; then
             SUBDIR="qemu"
             EFI_SUBDIR="qemu"
@@ -21,8 +22,10 @@ function initImageVars {
             EFI_2="$SNAP/usr/share/$EFI_SUBDIR/$EFI_VARS"
             if [ -z "$SNAP" ]; then
                 QEMU=qemu-system-aarch64
+                QEMU_DATA_DIR=/usr/share/qemu
             else
                 QEMU="$SNAP/usr/bin/qemu-system-aarch64"
+                QEMU_DATA_DIR="$SNAP/usr/share/qemu"
             fi
             QEMU_ARGS="\
                 -machine virt
@@ -34,8 +37,10 @@ function initImageVars {
         else
             if [ -z "$SNAP" ]; then
                 QEMU=qemu-system-x86_64
+                QEMU_DATA_DIR=/usr/share/qemu
             else
                 QEMU="$SNAP/usr/bin/qemu-system-x86_64"
+                QEMU_DATA_DIR="$SNAP/usr/share/qemu"
             fi
             QEMU_ARGS="\
                 -cpu host \
@@ -43,6 +48,10 @@ function initImageVars {
                 -device rtl8139,netdev=ethernet.0 \
                 -device AC97 \
                 -serial mon:stdio"
+        fi
+
+        if [ -n "$QEMU_DATA_DIR" ]; then
+            QEMU_ARGS="-L $QEMU_DATA_DIR $QEMU_ARGS"
         fi
 
         QEMU_ARGS="-display $GUI,gl=on $QEMU_ARGS"
