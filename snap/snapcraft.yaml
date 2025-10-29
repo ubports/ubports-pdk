@@ -56,6 +56,10 @@ parts:
       source $CRAFT_PART_SRC/scripts/vars.sh
       craftctl set version="$VERSION"
       craftctl set grade="stable"
+      mkdir -p $SNAPCRAFT_PRIME/usr/share/qemu
+      if [ -d "$SNAPCRAFT_STAGE/usr/share/seabios" ]; then
+        cp -a $SNAPCRAFT_STAGE/usr/share/seabios/. $SNAPCRAFT_PRIME/usr/share/qemu/
+      fi
     organize:
       scripts: bin/scripts
       ubuntu-touch-pdk: bin/ubuntu-touch-pdk
@@ -72,6 +76,7 @@ parts:
       - ovmf
       - qemu-efi-aarch64
       - libfdt1
+      - seabios
   runner:
     after: [ pdk ]
     source: snap/local
