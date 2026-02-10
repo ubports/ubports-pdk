@@ -60,7 +60,7 @@ function initImageVars {
         if [ "$HOST_ARCH" == "$ARCH" ]; then
             if [ "$(version "$QEMU_VERSION")" -ge "$(version "6.2.0")" ]; then
                 # Version 6.2.0 changed the virtio-gpu features
-                QEMU_ARGS="-enable-kvm -device virtio-gpu-gl-pci $QEMU_ARGS"
+                QEMU_ARGS="-enable-kvm -device virtio-gpu-gl-pci -vga none $QEMU_ARGS"
             else
                 # Maintain compatibility with older versions
                 QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on $QEMU_ARGS"
