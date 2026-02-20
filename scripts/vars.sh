@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034  # Variables used externally by other scripts
 
-CODENAME="Stereotyped Stacy"
-VERSION=0.1.0
+CODENAME="Lawnmower Man"
+VERSION=0.2.0
 
 function initCommonVars {
     if [ "$(uname -s)" == "Linux" ]; then
