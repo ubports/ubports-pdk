@@ -23,7 +23,7 @@ function initCommonVars {
     IMG_NAME="ubuntu-touch-pdk-img-$ARCH.raw"
     case ${RELEASE} in
         20.04|focal) BRANCH="ubports%252Ffocal" ;;
-        24.04-1.x|next|noble) BRANCH="main" ;;
+        24.04-2.x|next|noble) BRANCH="main" ;;
         *)
             printf "Invalid release '%s' specified.\n" "$RELEASE"
             printHelp
