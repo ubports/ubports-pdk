@@ -54,7 +54,7 @@ function initImageVars {
             QEMU_ARGS="-L $QEMU_DATA_DIR $QEMU_ARGS"
         fi
 
-        QEMU_ARGS="-display $GUI,gl=on $QEMU_ARGS"
+        QEMU_ARGS="-display $GUI,gl=on -audio sdl $QEMU_ARGS"
         getQemuVersion
 
         if [ "$HOST_ARCH" == "$ARCH" ]; then
