@@ -1,5 +1,8 @@
-CODENAME=Archangel
-VERSION=0.0.0-rc0
+#!/usr/bin/env bash
+# shellcheck disable=SC2034  # Variables used externally by other scripts
+
+CODENAME="Stereotyped Stacy"
+VERSION=0.1.0
 
 function initCommonVars {
     if [ "$(uname -s)" == "Linux" ]; then
@@ -16,17 +19,27 @@ function initCommonVars {
         NPROCS="$(sysctl -n hw.ncpu)"
     fi
 
-    IMG_NAME="ubuntu-touch-pdk-$ARCH.raw"
+    DEFAULT_DATA_ROOT="$CONFIG_ROOT/data"
+    IMG_NAME="ubuntu-touch-pdk-img-$ARCH.raw"
+    case ${RELEASE} in
+        20.04|focal) BRANCH="ubports%252Ffocal" ;;
+        24.04-1.x|next|noble) BRANCH="main" ;;
+        *)
+            printf "Invalid release '%s' specified.\n" "$RELEASE"
+            printHelp
+            exit 1
+            ;;
+    esac
     PULL_IMG_NAME="${IMG_NAME}.xz"
-    ARTIFACTS_URL="https://ci.ubports.com/job/Platform%20Development%20Kit/job/pdk-vm-image-$ARCH/lastSuccessfulBuild/artifact"
+    ARTIFACTS_URL="https://ci.ubports.com/job/ubuntu-touch-rootfs/job/${BRANCH}/lastSuccessfulBuild/artifact"
     PULL_URL="$ARTIFACTS_URL/$PULL_IMG_NAME"
 
     MEM_VM=$((MEM_TOTAL/2))
     if [ "$MEM_VM" -lt "1" ]; then
         MEM_VM=1
     fi
-    if [ "$MEM_VM" -gt "4" ]; then
-        MEM_VM=4
+    if [ "$MEM_VM" -gt "8" ]; then
+        MEM_VM=8
     fi
 
     NPROC_VM=$((NPROCS-2))

@@ -1,9 +1,12 @@
+#!/usr/bin/env bash
+
 function initSettingsVars {
-	if [ "$(uname -s)" == "Darwin" ]; then
-	    SETTINGS_FILE="$DATA_ROOT/sshd/settings.dmg"
-	elif [ "$(uname -s)" == "Linux" ]; then
-	    SETTINGS_FILE="$DATA_ROOT/sshd/settings.raw"
-	fi
+    if [ "$(uname -s)" == "Darwin" ]; then
+        SETTINGS_FILE="$DATA_ROOT/sshd/settings.dmg"
+    elif [ "$(uname -s)" == "Linux" ]; then
+        SETTINGS_FILE="$DATA_ROOT/sshd/settings.raw"
+        IS_MTOOLS_INSTALLED=$(which mtools >/dev/null && echo 1 || echo 0)
+    fi
 }
 
 function generateSettingsImage {
@@ -31,12 +34,50 @@ function copySettingsIntoImage {
         cp "$DATA_ROOT/sshd/id_rsa.pub" "/Volumes/PDKSETTINGS/id_rsa.pub"
         hdiutil detach "/Volumes/PDKSETTINGS"
     elif [ "$(uname -s)" == "Linux" ]; then
-        MNT_DIR=$(mktemp -d)
-        sudo mount "$SETTINGS_FILE" "$MNT_DIR"
-        sudo cp "$CONFIG_ROOT/config.sh" "$MNT_DIR/config.sh"
-        sudo cp "$DATA_ROOT/sshd/id_rsa" "$MNT_DIR/id_rsa"
-        sudo cp "$DATA_ROOT/sshd/id_rsa.pub" "$MNT_DIR/id_rsa.pub"
-        sudo umount "$MNT_DIR"
-        rm -rf "$MNT_DIR"
+        # Snap: No contents required right now
+        if [ "$SNAP" != "" ]; then
+            return
+        fi
+
+        if [ "$IS_MTOOLS_INSTALLED" == "1" ]; then
+            echo "Using mtools to create a settings image"
+            mcopy -i "$SETTINGS_FILE" "$CONFIG_ROOT/config.sh" ::
+            mcopy -i "$SETTINGS_FILE" "$DATA_ROOT/sshd/id_rsa" ::
+            mcopy -i "$SETTINGS_FILE" "$DATA_ROOT/sshd/id_rsa.pub" ::
+        else
+            echo "Using sudo-based settings image generation..."
+            MNT_DIR=$(mktemp -d)
+            sudo mount "$SETTINGS_FILE" "$MNT_DIR"
+            sudo cp "$CONFIG_ROOT/config.sh" "$MNT_DIR/config.sh"
+            sudo cp "$DATA_ROOT/sshd/id_rsa" "$MNT_DIR/id_rsa"
+            sudo cp "$DATA_ROOT/sshd/id_rsa.pub" "$MNT_DIR/id_rsa.pub"
+            sudo umount "$MNT_DIR"
+            rm -rf "$MNT_DIR"
+        fi
     fi
+}
+
+function startVirtiofsd {
+    # Return immediately in non-Snap environments
+    if [ -z "$SNAP" ]; then
+        return
+    fi
+    VIRTIOFS_SOCK="$SNAP_USER_DATA/$NAME-vhost-fs.sock"
+    $SNAP/bin/virtiofsd \
+        --socket-path="$VIRTIOFS_SOCK" \
+        -o source="$SRC_ROOT" \
+        -o allow_direct_io \
+        -o xattr \
+        -o writeback \
+        -o readdirplus \
+        --sandbox none \
+        -f &
+
+    while [ ! -e "$VIRTIOFS_SOCK" ]; do
+        sleep 0.1
+    done
+
+    # shellcheck disable=SC2034  # Variable used externally by other scripts
+    VIRTIOFS_ACTIVE=1
+    #[ ! -z "$SNAP" ] && VIRTIOFS_ACTIVE=0
 }

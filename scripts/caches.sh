@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 function createCaches {
     mkdir -p "$IMG_CACHE"
 }

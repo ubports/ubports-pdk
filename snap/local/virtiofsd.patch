@@ -1,0 +1,38 @@
+diff --git a/src/main.rs b/src/main.rs
+index 477b482..74952f1 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -782,25 +782,6 @@ fn main() {
+         }
+     }
+ 
+-    let fd_count_limit = limits::setup_rlimit_nofile(opt.rlimit_nofile).unwrap_or_else(|error| {
+-        error!("Error increasing number of open files: {error}");
+-        process::exit(1)
+-    });
+-
+-    // Account for guest FDs that are created first and only accounted for then (see doc comment on
+-    // `INTERNAL_FD_RESERVE`
+-    let internal_fd_reserve = INTERNAL_FD_RESERVE + cmp::max(opt.thread_pool_size as u64, 1);
+-    let guest_fd_limit = fd_count_limit.checked_sub(internal_fd_reserve).unwrap_or_else(|| {
+-        error!("Maximum number of file descriptors too small: Limit is {fd_count_limit}, must be at least {internal_fd_reserve}");
+-        process::exit(1)
+-    });
+-
+-    // Warn the user if there is a suspiciously low limit on the guest FD count that will make it
+-    // hard to actually do something; the number of `128` is completely arbitrary.
+-    if guest_fd_limit < 128 {
+-        warn!("File descriptor count limit is very small, leaving only {guest_fd_limit} file descriptors for the guest");
+-    }
+-
+     let mut sandbox = Sandbox::new(
+         shared_dir.to_string(),
+         opt.sandbox,
+@@ -845,7 +826,6 @@ fn main() {
+         migration_mode: opt.migration_mode,
+         uid_map: Some(opt.translate_uid),
+         gid_map: Some(opt.translate_gid),
+-        guest_fd_limit,
+         ..Default::default()
+     };
+ 

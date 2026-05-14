@@ -1,5 +1,5 @@
 name: ubports-pdk
-version: 'latest'
+adopt-info: pdk
 summary: Platform Development Kit for Ubuntu Touch by UBports
 description: |
  A development environment for creating the Ubuntu Touch platform.
@@ -7,14 +7,148 @@ description: |
  compilers and packaging tools for making creating the platform a breeze.
 
 grade: stable
-confinement: classic
-base: core20
+confinement: strict
+base: core24
+
+platforms:
+  arm64:
+    build-on: [arm64]
+  amd64:
+    build-on: [amd64]
 
 apps:
   pdk:
-    command: ubuntu-touch-pdk
+    environment:
+      LD_LIBRARY_PATH: ${SNAP}/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:${SNAP}/usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}/ceph:${SNAP}/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:${SNAP}/usr/lib
+    command: bin/ubuntu-touch-pdk
+    command-chain: [ bin/runner ]
+    extensions: [ gnome ]
+    plugs:
+      - audio-playback
+      - audio-record
+      - kvm
+      - home
+      - opengl
+      - raw-usb
+      - removable-media
+      - screen-inhibit-control
+      - network
+      - network-bind
+      - network-control
+      - unity7
+      - x11
+      - wayland
+
+layout:
+  /usr/sbin/smbd:
+    bind-file: $SNAP/usr/sbin/smbd
+  /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/qemu:
+    bind: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/qemu
+  /usr/lib/ipxe:
+    bind: $SNAP/usr/lib/ipxe
 
 parts:
   pdk:
     source: .
     plugin: dump
+    override-prime: |
+      craftctl default
+      source $CRAFT_PART_SRC/scripts/vars.sh
+      craftctl set version="$VERSION"
+      craftctl set grade="stable"
+      mkdir -p $SNAPCRAFT_PRIME/usr/share/qemu
+      if [ -d "$SNAPCRAFT_STAGE/usr/share/seabios" ]; then
+        cp -a $SNAPCRAFT_STAGE/usr/share/seabios/. $SNAPCRAFT_PRIME/usr/share/qemu/
+      fi
+    organize:
+      scripts: bin/scripts
+      ubuntu-touch-pdk: bin/ubuntu-touch-pdk
+    stage-packages:
+      - wget
+      - xz-utils
+      - dosfstools
+      - openssh-client
+      - mtools
+      - coreutils
+      - qemu-system-arm
+      - qemu-system-x86
+      - qemu-system-gui
+      - ovmf
+      - qemu-efi-aarch64
+      - libfdt1
+      - seabios
+  runner:
+    after: [ pdk ]
+    source: snap/local
+    plugin: nil
+    override-pull: |
+      craftctl default
+      mkdir -p $CRAFT_STAGE
+      cp -av $CRAFT_PART_SRC/virtiofsd.patch $CRAFT_STAGE
+    override-build: |
+      mkdir -p $SNAPCRAFT_PART_INSTALL/bin
+      cp -av runner $SNAPCRAFT_PART_INSTALL/bin/
+  virtiofsd:
+    after: [ runner ]
+    source: https://gitlab.com/virtio-fs/virtiofsd.git
+    source-tag: v1.13.2
+    plugin: rust
+    build-packages:
+      - libseccomp-dev
+      - libcap-ng-dev
+    override-pull: |
+      craftctl default
+      patch -p1 < $CRAFT_STAGE/virtiofsd.patch
+  smbd:
+    after: [ runner, virtiofsd ]
+    plugin: nil
+    stage-packages:
+      - samba
+    prime:
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libdcerpc.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libdcerpc-binding.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libdcerpc-server.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libjansson.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libldb.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libndr-krb5pac.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libndr-nbt.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libndr.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libndr-standard.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libnetapi.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpopt.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpython2.7.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpytalloc-util.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libsamba-*.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libsamdb.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libsmbconf.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libsmbldap.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libtalloc.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libtevent.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libtevent-util.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libwbclient.so*
+      - usr/lib/$SNAPCRAFT_ARCH_TRIPLET/samba/*
+      - usr/sbin/smbd
+  #mesa:
+  #  plugin: nil
+  #  stage-packages:
+  #    - libegl1
+  #    - libgl1
+  #    - libgl1-mesa-dri
+  #    - libglx-mesa0
+  #  build-attributes:
+  #    - no-patchelf
+  #  prime:
+  #    - -lib/udev
+  #    - -usr/doc
+  #    - -usr/doc-base
+  #    - -usr/share/applications
+  #    - -usr/share/apport
+  #    - -usr/share/bug
+  #    - -usr/share/doc
+  #    - -usr/share/doc-base
+  #    - -usr/share/icons
+  #    - -usr/share/libdrm
+  #    - -usr/share/libwacom
+  #    - -usr/share/lintian
+  #    - -usr/share/man
+  #    - -usr/share/pkgconfig

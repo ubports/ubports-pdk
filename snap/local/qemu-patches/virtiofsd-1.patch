@@ -1,0 +1,125 @@
+From a3f718bbb6c458ae8535f7d63cd48c27e0665c58 Mon Sep 17 00:00:00 2001
+From: Alfred Neumayer <dev.beidl@gmail.com>
+Date: Sat, 10 Jul 2021 01:51:04 +0200
+Subject: [PATCH] virtiofsd: Port unprivileged mode patches over to 6.0.0
+
+Port over patches by Vivek Goyal to support virtiofsd without the
+need for root privileges in setting up the sandbox.
+
+Original patches here:
+https://patchew.org/QEMU/20200730194736.173994-1-vgoyal@redhat.com/
+---
+ tools/virtiofsd/fuse_virtio.c    | 15 ++++++++++++++-
+ tools/virtiofsd/passthrough_ll.c | 30 +++++++++++++++++++++++++++---
+ 2 files changed, 41 insertions(+), 4 deletions(-)
+
+diff --git a/tools/virtiofsd/fuse_virtio.c b/tools/virtiofsd/fuse_virtio.c
+index 3e13997406..1f4996b282 100644
+--- a/tools/virtiofsd/fuse_virtio.c
++++ b/tools/virtiofsd/fuse_virtio.c
+@@ -898,8 +898,21 @@ static bool fv_socket_lock(struct fuse_session *se)
+     g_autofree gchar *pidfile = NULL;
+     g_autofree gchar *dir = NULL;
+     Error *local_err = NULL;
++    gboolean unprivileged = false;
+ 
+-    dir = qemu_get_local_state_pathname("run/virtiofsd");
++    if (geteuid() != 0)
++        unprivileged = true;
++
++    /*
++     * Unpriviliged users don't have access to /usr/local/var. Hence
++     * store lock/pid file in per user cache directory. Use environment
++     * variable XDG_RUNTIME_DIR.
++     */
++    if (unprivileged) {
++        dir = g_strdup_printf("%s/virtiofsd", g_get_user_runtime_dir());
++    } else {
++        dir = qemu_get_local_state_pathname("run/virtiofsd");
++    }
+ 
+     if (g_mkdir_with_parents(dir, S_IRWXU) < 0) {
+         fuse_log(FUSE_LOG_ERR, "%s: Failed to create directory %s: %s",
+diff --git a/tools/virtiofsd/passthrough_ll.c b/tools/virtiofsd/passthrough_ll.c
+index 1553d2ef45..98577813ac 100644
+--- a/tools/virtiofsd/passthrough_ll.c
++++ b/tools/virtiofsd/passthrough_ll.c
+@@ -133,6 +133,7 @@ enum {
+ enum {
+     SANDBOX_NAMESPACE,
+     SANDBOX_CHROOT,
++    SANDBOX_NONE
+ };
+ 
+ typedef struct xattr_map_entry {
+@@ -144,6 +145,7 @@ typedef struct xattr_map_entry {
+ struct lo_data {
+     pthread_mutex_t mutex;
+     int sandbox;
++    bool unprivileged;
+     int debug;
+     int writeback;
+     int flock;
+@@ -3479,6 +3481,15 @@ static void setup_capabilities(char *modcaps_in)
+     pthread_mutex_unlock(&cap.mutex);
+ }
+ 
++static void setup_none(struct lo_data *lo)
++{
++    lo->proc_self_fd = open("/proc/self/fd", O_PATH);
++    if (lo->proc_self_fd == -1) {
++        fuse_log(FUSE_LOG_ERR, "open(\"/proc/self/fd\", O_PATH): %m\n");
++        exit(1);
++    }
++}
++
+ /*
+  * Use chroot as a weaker sandbox for environments where the process is
+  * launched without CAP_SYS_ADMIN.
+@@ -3524,12 +3535,15 @@ static void setup_sandbox(struct lo_data *lo, struct fuse_session *se,
+     if (lo->sandbox == SANDBOX_NAMESPACE) {
+         setup_namespaces(lo, se);
+         setup_mounts(lo->source);
+-    } else {
++    } else if (lo->sandbox == SANDBOX_CHROOT) {
+         setup_chroot(lo);
++    } else {
++        setup_none(lo);
+     }
+ 
+     setup_seccomp(enable_syslog);
+-    setup_capabilities(g_strdup(lo->modcaps));
++    if (lo->sandbox != SANDBOX_NONE)
++       setup_capabilities(g_strdup(lo->modcaps));
+ }
+ 
+ /* Set the maximum number of open file descriptors */
+@@ -3634,7 +3648,11 @@ static void setup_root(struct lo_data *lo, struct lo_inode *root)
+     struct stat stat;
+     uint64_t mnt_id;
+ 
+-    fd = open("/", O_PATH);
++    if (lo->sandbox == SANDBOX_NONE)
++        fd = open(lo->source, O_PATH);
++    else
++        fd = open("/", O_PATH);
++
+     if (fd == -1) {
+         fuse_log(FUSE_LOG_ERR, "open(%s, O_PATH): %m\n", lo->source);
+         exit(1);
+@@ -3762,6 +3780,12 @@ int main(int argc, char *argv[])
+     lo_map_init(&lo.dirp_map);
+     lo_map_init(&lo.fd_map);
+ 
++    if (geteuid() != 0) {
++       lo.unprivileged = true;
++       lo.sandbox = SANDBOX_NONE;
++       fuse_log(FUSE_LOG_DEBUG, "Running in unprivileged passthrough mode.\n");
++    }
++
+     if (fuse_parse_cmdline(&args, &opts) != 0) {
+         goto err_out1;
+     }
+-- 
+2.25.1
+

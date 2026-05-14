@@ -1,100 +1,137 @@
+#!/usr/bin/env bash
+
+# Source https://apple.stackexchange.com/questions/83939/compare-multi-digit-version-numbers-in-bash/123408#123408
+function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+
+function getQemuVersion {
+    QEMU_VERSION=$("$QEMU" --version | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
+    export QEMU_VERSION
+}
+
 function initImageVars {
     if [ "$(uname -s)" == "Linux" ]; then
+        QEMU_DATA_DIR=""
         if [ "$ARCH" == "arm64" ]; then
-            EFI_1="/snap/qemu-ut-pdk/current/usr/share/qemu/edk2-aarch64-code.fd"
-            EFI_2="/snap/qemu-ut-pdk/current/usr/share/qemu/edk2-arm-vars.fd"
-            QEMU=qemu-ut-pdk.arm64
+            SUBDIR="qemu"
+            EFI_SUBDIR="qemu"
+            EFI_CODE="edk2-aarch64-code.fd"
+            EFI_VARS="edk2-arm-vars.fd"
+            #[ -z "$SNAP" ] && # next line
+            EFI_SUBDIR=AAVMF && EFI_CODE="AAVMF_CODE.secboot.fd" && EFI_VARS="AAVMF_VARS.fd"
+            EFI_1="$SNAP/usr/share/$EFI_SUBDIR/$EFI_CODE"
+            EFI_2="$SNAP/usr/share/$EFI_SUBDIR/$EFI_VARS"
+            if [ -z "$SNAP" ]; then
+                QEMU=qemu-system-aarch64
+                QEMU_DATA_DIR=/usr/share/qemu
+            else
+                QEMU="$SNAP/usr/bin/qemu-system-aarch64"
+                QEMU_DATA_DIR="$SNAP/usr/share/qemu"
+            fi
             QEMU_ARGS="\
-                -cpu cortex-a72 \
-                -netdev user,id=ethernet.0 \
+                -machine virt
+                -cpu host \
+                -netdev user,id=ethernet.0,hostfwd=tcp:127.0.0.1:5555-:5555 \
                 -device rtl8139,netdev=ethernet.0 \
                 -device AC97 \
                 -serial mon:stdio"
         else
-            QEMU=qemu-ut-pdk.qemu-virgil
+            if [ -z "$SNAP" ]; then
+                QEMU=qemu-system-x86_64
+                QEMU_DATA_DIR=/usr/share/qemu
+            else
+                QEMU="$SNAP/usr/bin/qemu-system-x86_64"
+                QEMU_DATA_DIR="$SNAP/usr/share/qemu"
+            fi
             QEMU_ARGS="\
-                -cpu Haswell-v4 \
-                -netdev user,id=ethernet.0 \
+                -cpu host \
+                -netdev user,id=ethernet.0,hostfwd=tcp:127.0.0.1:5555-:5555 \
                 -device rtl8139,netdev=ethernet.0 \
                 -device AC97 \
                 -serial mon:stdio"
         fi
 
-        if [ "$HOST_ARCH" == "$ARCH" ]; then
-            QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on -display sdl,gl=on $QEMU_ARGS"
-        else
-            QEMU_ARGS="-machine virt -device virtio-gpu-pci,virgl=on -display sdl,gl=on $QEMU_ARGS"
+        if [ -n "$QEMU_DATA_DIR" ]; then
+            QEMU_ARGS="-L $QEMU_DATA_DIR $QEMU_ARGS"
         fi
+
+        QEMU_ARGS="-display $GUI,gl=on $QEMU_ARGS"
+        getQemuVersion
+
+        if [ "$HOST_ARCH" == "$ARCH" ]; then
+            if [ "$(version "$QEMU_VERSION")" -ge "$(version "6.2.0")" ]; then
+                # Version 6.2.0 changed the virtio-gpu features
+                QEMU_ARGS="-enable-kvm -device virtio-gpu-gl-pci $QEMU_ARGS"
+            else
+                # Maintain compatibility with older versions
+                QEMU_ARGS="-enable-kvm -device virtio-vga,virgl=on $QEMU_ARGS"
+            fi
+        else
+            if [ "$(version "$QEMU_VERSION")" -ge "$(version "6.2.0")" ]; then
+                # Version 6.2.0 changed the virtio-gpu features
+                QEMU_ARGS="-machine virt -device virtio-gpu-gl-pci $QEMU_ARGS"
+            else
+                # Maintain compatibility with older versions
+                QEMU_ARGS="-machine virt -device virtio-gpu-pci,virgl=on $QEMU_ARGS"
+            fi
+        fi
+        QEMU_ARGS="-device virtio-keyboard-pci -device virtio-mouse-pci $QEMU_ARGS"
     elif [ "$(uname -s)" == "Darwin" ]; then
         if [ "$ARCH" == "arm64" ]; then
-            EFI_1="$(dirname $(which qemu-img))/../share/qemu/edk2-aarch64-code.fd"
-            EFI_2="$(dirname $(which qemu-img))/../share/qemu/edk2-arm-vars.fd"
+            EFI_1="$(dirname "$(which qemu-img)")/../share/qemu/edk2-aarch64-code.fd"
+            EFI_2="$(dirname "$(which qemu-img)")/../share/qemu/edk2-arm-vars.fd"
             QEMU=qemu-system-aarch64
             QEMU_ARGS="\
                 -cpu cortex-a72 \
                 -device intel-hda -device hda-output \
-                -device virtio-gpu-pci \
+                -device virtio-gpu-gl-pci \
                 -device virtio-keyboard-pci \
                 -device virtio-net-pci,netdev=net \
                 -device virtio-mouse-pci \
                 -display cocoa,gl=es \
-                -netdev user,id=net,ipv6=off \
+                -netdev user,id=net,ipv6=off,hostfwd=tcp:127.0.0.1:5555-:5555 \
                 -serial mon:stdio"
         else
             QEMU=qemu-system-x86_64
             QEMU_ARGS="\
-                -cpu Haswell-v4 \
+                -cpu host \
                 -device intel-hda -device hda-output \
-                -device virtio-gpu-pci \
+                -device virtio-gpu-gl-pci \
                 -device virtio-keyboard-pci \
                 -device virtio-net-pci,netdev=net \
                 -device virtio-mouse-pci \
                 -display cocoa,gl=es \
-                -netdev user,id=net,ipv6=off \
+                -netdev user,id=net,ipv6=off,hostfwd=tcp:127.0.0.1:5555-:5555 \
                 -serial mon:stdio"
         fi
 
         if [ "$HOST_ARCH" == "$ARCH" ]; then
             QEMU_ARGS="-machine virt,accel=hvf,highmem=off $QEMU_ARGS"
-        else
-            QEMU_ARGS="$QEMU_ARGS"
         fi
     fi
 }
 
-function createImage {
-    if [ "$(uname -s)" != "Linux" ]; then
-        echo "Creating images not implemented on $(uname -s), skipping."
-        return 0
-    fi
-
-    createCaches
-
-    $SCRIPTPATH/deps/rootfs-builder-debos/debos-docker \
-        -t architecture:"\"$ARCH\"" \
-        -m 5G $SCRIPTPATH/deps/rootfs-builder-debos/focal-pdk.yaml
-}
-
 function pullLatestImage {
     createCaches
+    if [ -e "$IMG_CACHE/$NAME/$IMG_NAME" ]; then
+        rm -f "$IMG_CACHE/$NAME/$IMG_NAME"
+    fi
+    if [ -e "$IMG_CACHE/$NAME/$PULL_IMG_NAME" ]; then
+        rm -f "$IMG_CACHE/$NAME/$PULL_IMG_NAME"
+    fi
     wget -P "$IMG_CACHE/$NAME" --continue "$PULL_URL"
     echo "Unpacking the archive"
+
+    set +e
     unxz "$IMG_CACHE/$NAME/$PULL_IMG_NAME"
+    set -e
+
     mv "$IMG_CACHE/$NAME/$IMG_NAME" "$IMG_CACHE/$NAME/hdd.raw"
     echo "ARCH=$ARCH" > "$IMG_CACHE/$NAME/info.sh"
+    echo "Pull successful!"
 }
 
 function runImage {
-    if [ ! -d "$IMG_CACHE/$NAME" ]; then
-        echo "Cache directory for image '$NAME' doesn't exist."
-        return 1
-    fi
-    if [ ! -f "$IMG_CACHE/$NAME/hdd.raw" ]; then
-        echo "Hard disk for image '$NAME' doesn't exist."
-        echo "Consider pulling or creating an image yourself."
-        return 1
-    fi
-
+    # shellcheck source=/dev/null
     source "$IMG_CACHE/$NAME/info.sh"
 
     EFI_ARGS=""
@@ -107,7 +144,14 @@ function runImage {
         EFI_ARGS="$EFI_ARGS -drive if=pflash,format=raw,file=$IMG_CACHE/$NAME/efi_2.fd,discard=on"
     fi
 
-    $QEMU $QEMU_ARGS $QEMU_MEM_ARGS $EFI_ARGS \
+    if [ "$VIRTIOFS_ACTIVE" == "1" ]; then
+        VIRTIOFS_ARGS="\
+            -chardev socket,id=char0,path=$VIRTIOFS_SOCK \
+            -device vhost-user-fs-pci,chardev=char0,tag=myfs \
+            -object memory-backend-memfd,id=mem,size=${MEM_VM}G,share=on \
+            -numa node,memdev=mem"
+    fi
+    $QEMU $QEMU_ARGS $QEMU_MEM_ARGS $EFI_ARGS $VIRTIOFS_ARGS \
         -smp "$NPROC_VM" \
         -drive "if=virtio,format=raw,file=$IMG_CACHE/$NAME/hdd.raw,discard=on" \
         -drive "if=virtio,format=raw,file=$SETTINGS_FILE,readonly=on"
@@ -119,7 +163,7 @@ function listImages {
     echo ""
 
     CACHE_IMAGES=$(ls "$IMG_CACHE")
-    if [ "$CACHE_IMAGES" == "" ]; then
+    if [ -z "$CACHE_IMAGES" ]; then
         echo "No images found"
         return 0
     fi
@@ -130,9 +174,9 @@ function listImages {
             continue;
         fi
         if [ -f "$IMG_CACHE/$i/info.sh" ]; then
-            IMG_ARCH=$(cat "$IMG_CACHE/$i/info.sh" | awk -F"=" '{ print $2 }')
+            IMG_ARCH=$(awk -F"=" '{ print $2 }' < "$IMG_CACHE/$i/info.sh")
         fi
-        if [ "$IMG_ARCH" == "" ]; then
+        if [ -z "$IMG_ARCH" ]; then
             IMG_ARCH="$ARCH"
         fi
         printf "\t- %s (%s)\n" "$i" "$IMG_ARCH"

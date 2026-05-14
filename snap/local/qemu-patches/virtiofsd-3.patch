@@ -1,0 +1,30 @@
+From dec0bf4015c6feeb252be542212e2139ac371d36 Mon Sep 17 00:00:00 2001
+From: Alfred Neumayer <dev.beidl@gmail.com>
+Date: Sat, 10 Jul 2021 03:19:33 +0200
+Subject: [PATCH] virtiofsd: chdir into the source directory in unprivileged
+ mode
+
+Otherwise files would be attempted to be created in the root dir.
+---
+ tools/virtiofsd/passthrough_ll.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/tools/virtiofsd/passthrough_ll.c b/tools/virtiofsd/passthrough_ll.c
+index 34fe9ca7f2..3625f6bac6 100644
+--- a/tools/virtiofsd/passthrough_ll.c
++++ b/tools/virtiofsd/passthrough_ll.c
+@@ -3498,6 +3498,11 @@ static void setup_none(struct lo_data *lo)
+         fuse_log(FUSE_LOG_ERR, "open(\"/proc/self/fd\", O_PATH): %m\n");
+         exit(1);
+     }
++
++    if (chdir(lo->source) != 0) {
++        fuse_log(FUSE_LOG_ERR, "chdir(\"%s\"): %m\n", lo->source);
++        exit(1);
++    }
+ }
+ 
+ /*
+-- 
+2.25.1
+
