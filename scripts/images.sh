@@ -30,7 +30,7 @@ function initImageVars {
             QEMU_ARGS="\
                 -machine virt
                 -cpu host \
-                -netdev user,id=ethernet.0,hostfwd=tcp:127.0.0.1:5555-:5555 \
+                -netdev user,id=ethernet.0,hostfwd=tcp:127.0.0.1:5555-:5555,hostfwd=tcp:127.0.0.1:2222-:22 \
                 -device rtl8139,netdev=ethernet.0 \
                 -device AC97 \
                 -serial mon:stdio"
@@ -44,7 +44,7 @@ function initImageVars {
             fi
             QEMU_ARGS="\
                 -cpu host \
-                -netdev user,id=ethernet.0,hostfwd=tcp:127.0.0.1:5555-:5555 \
+                -netdev user,id=ethernet.0,hostfwd=tcp:127.0.0.1:5555-:5555,hostfwd=tcp:127.0.0.1:2222-:22 \
                 -device rtl8139,netdev=ethernet.0 \
                 -device AC97 \
                 -serial mon:stdio"
@@ -88,7 +88,7 @@ function initImageVars {
                 -device virtio-net-pci,netdev=net \
                 -device virtio-mouse-pci \
                 -display cocoa,gl=es \
-                -netdev user,id=net,ipv6=off,hostfwd=tcp:127.0.0.1:5555-:5555 \
+                -netdev user,id=net,ipv6=off,hostfwd=tcp:127.0.0.1:5555-:5555,hostfwd=tcp:127.0.0.1:2222-:22 \
                 -serial mon:stdio"
         else
             QEMU=qemu-system-x86_64
@@ -100,7 +100,7 @@ function initImageVars {
                 -device virtio-net-pci,netdev=net \
                 -device virtio-mouse-pci \
                 -display cocoa,gl=es \
-                -netdev user,id=net,ipv6=off,hostfwd=tcp:127.0.0.1:5555-:5555 \
+                -netdev user,id=net,ipv6=off,hostfwd=tcp:127.0.0.1:5555-:5555,hostfwd=tcp:127.0.0.1:2222-:22 \
                 -serial mon:stdio"
         fi
 
